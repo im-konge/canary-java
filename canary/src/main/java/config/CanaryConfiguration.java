@@ -67,7 +67,7 @@ public class CanaryConfiguration {
         this.saslUser = getStringOrDefault(CanaryConstants.SASL_USER_ENV, "");
         this.saslPassword = getStringOrDefault(CanaryConstants.SASL_PASSWORD_ENV, "");
         this.connectionCheckInterval = getDurationOrDefault(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
-        this.connectionCheckLatencyBuckets = createLatencyBuckets(getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));;
+        this.connectionCheckLatencyBuckets = createLatencyBuckets(getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         this.statusCheckInterval = getDurationOrDefault(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         this.statusTimeWindow = getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
         this.dynamicConfigWatcherInterval = getDurationOrDefault(CanaryConstants.DYNAMIC_CONFIG_WATCHER_INTERVAL_ENV, CanaryConstants.DYNAMIC_CONFIG_WATCHER_INTERVAL_DEFAULT);
