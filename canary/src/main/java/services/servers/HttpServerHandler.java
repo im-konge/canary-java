@@ -11,11 +11,34 @@ import java.net.InetSocketAddress;
 
 public class HttpServerHandler {
 
-    public static void createHttpServer() throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/liveness", new HealthCheck.LivenessHandler());
-        server.createContext("/readiness", new HealthCheck.ReadinessHandler());
-        server.setExecutor(null); // creates a default executor
-        server.start();
+    private static HttpServerHandler httpServerHandler;
+    private HttpServer server;
+
+    private HttpServerHandler() {
+        try {
+            this.server = HttpServer.create(new InetSocketAddress(8080), 0);
+        } catch (Exception e) {
+            //add LOGGER here, but wait for another PR to be merged, to prevent conflicts
+            e.printStackTrace();
+        }
+    }
+
+    public HttpServerHandler getInstance() {
+        if (httpServerHandler == null) {
+            httpServerHandler = new HttpServerHandler();
+        }
+        return httpServerHandler;
+    }
+
+    public void startHttpServer() {
+        this.server.createContext("/liveness", new HealthCheck.LivenessHandler());
+        this.server.createContext("/readiness", new HealthCheck.ReadinessHandler());
+        // creates a default executor
+        this.server.setExecutor(null);
+        this.server.start();
+    }
+
+    public void stopHttpServer() {
+        this.server.stop(0);
     }
 }
