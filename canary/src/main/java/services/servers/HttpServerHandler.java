@@ -9,8 +9,7 @@ import services.health.HealthCheck;
 
 import java.net.InetSocketAddress;
 
-// TODO: different name
-public class HttpServerR {
+public class HttpServerHandler {
 
     public static void createHttpServer() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
