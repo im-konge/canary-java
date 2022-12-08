@@ -2,7 +2,7 @@
  * Copyright Strimzi authors.
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
-package services.clients;
+package clients;
 
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.admin.Admin;
@@ -14,7 +14,7 @@ import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import services.topic.Topic;
+import topic.Topic;
 
 import java.util.Collections;
 import java.util.Properties;
