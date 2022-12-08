@@ -4,6 +4,8 @@
  */
 package servers;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -17,6 +19,7 @@ import java.io.IOException;
 
 public class HttpServerHandler {
 
+    private static final Logger LOGGER = LogManager.getLogger(HttpServerHandler.class);
     private static HttpServerHandler httpServerHandler;
     private static final int HTTP_PORT = 8080;
     private Server server;
@@ -50,14 +53,16 @@ public class HttpServerHandler {
         try {
             server.start();
         } catch (Exception e)   {
+            LOGGER.error("Failed to start the liveness and readiness webserver", e);
             throw new RuntimeException(e);
         }
     }
 
     public void stopHttpServer() {
         try {
-            server.start();
+            server.stop();
         } catch (Exception e)   {
+            LOGGER.error("Failed to stop the liveness and readiness webserver", e);
             throw new RuntimeException(e);
         }
     }
