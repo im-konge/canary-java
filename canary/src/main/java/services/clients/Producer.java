@@ -4,10 +4,10 @@
  */
 package services.clients;
 
+import com.google.gson.JsonObject;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.Properties;
@@ -35,10 +35,11 @@ public class Producer {
     private String generateMessage(int messageId) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        return new JSONObject()
-            .put("producerId", this.producerId)
-            .put("messageId", String.valueOf(messageId))
-            .put("timestamp", timestamp.toString())
-            .toString();
+        JsonObject message = new JsonObject();
+        message.addProperty("producerId", this.producerId);
+        message.addProperty("messageId", String.valueOf(messageId));
+        message.addProperty("timestamp", timestamp.toString());
+
+        return message.toString();
     }
 }
