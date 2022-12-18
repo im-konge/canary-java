@@ -34,7 +34,14 @@ public class AdminClient {
         this.topic = new Topic(configuration.getTopic(), configuration.getTopicConfig());
     }
 
-    private boolean isTopicCreated() {
+    public void createTopicIfNotExists() {
+        if (!isTopicCreated()) {
+            LOGGER.warn("KafkaTopic: {} not created, going to create it now", this.topic.topicName());
+            createTopic();
+        }
+    }
+
+    public boolean isTopicCreated() {
         ListTopicsResult topicList = this.adminClient.listTopics();
         try {
             return topicList.names().get().contains(this.topic.topicName());
