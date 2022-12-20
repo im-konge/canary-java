@@ -51,7 +51,7 @@ public class HttpServerHandler {
 
     public void startHttpServer() {
         try {
-            getInstance().server.start();
+            getServer().start();
         } catch (Exception e)   {
             LOGGER.error("Failed to start the liveness and readiness webserver", e);
             throw new RuntimeException(e);
@@ -60,11 +60,15 @@ public class HttpServerHandler {
 
     public void stopHttpServer() {
         try {
-            getInstance().server.stop();
+            getServer().stop();
         } catch (Exception e)   {
             LOGGER.error("Failed to stop the liveness and readiness webserver", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Server getServer() {
+        return getInstance().server;
     }
 
     public static class LivenessHandler extends AbstractHandler {
