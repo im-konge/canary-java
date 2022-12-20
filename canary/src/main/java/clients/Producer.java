@@ -8,14 +8,13 @@ import com.google.gson.JsonObject;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.file.LinkOption;
 import java.sql.Timestamp;
 import java.util.Properties;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class Producer implements Client {
 

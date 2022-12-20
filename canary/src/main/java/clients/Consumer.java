@@ -16,7 +16,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class Consumer implements Client{
+public class Consumer implements Client {
 
     private static final Logger LOGGER = LogManager.getLogger(Consumer.class);
     private final KafkaConsumer<String, String> consumer;

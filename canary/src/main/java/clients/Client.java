@@ -4,8 +4,6 @@
  */
 package clients;
 
-import java.util.Properties;
-
 public interface Client {
 
     public void start();
