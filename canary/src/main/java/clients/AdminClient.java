@@ -20,16 +20,15 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-public class AdminClient {
+public class AdminClient implements Client {
 
     private static final Logger LOGGER = LogManager.getLogger(AdminClient.class);
     private final Admin adminClient;
-
+    private final Properties properties;
     private final Topic topic;
 
     public AdminClient(CanaryConfiguration configuration) {
-        Properties properties = ClientConfiguration.adminProperties(configuration);
-
+        this.properties = ClientConfiguration.adminProperties(configuration);
         this.adminClient = Admin.create(properties);
         this.topic = new Topic(configuration.getTopic(), configuration.getTopicConfig());
     }
@@ -84,5 +83,17 @@ public class AdminClient {
             LOGGER.error("Failed to delete KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void start() {
+        LOGGER.info("Starting Admin client with properties: {}", properties);
+        createTopicIfNotExists();
+    }
+
+    @Override
+    public void stop() {
+        LOGGER.info("Stopping Admin client");
+        deleteTopic();
     }
 }

@@ -9,10 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static common.Environment.getBooleanOrDefault;
-import static common.Environment.getDurationOrDefault;
-import static common.Environment.getIntOrDefault;
-import static common.Environment.getStringOrDefault;
+import static common.Environment.*;
 
 public class CanaryConfiguration {
     private final String[] bootstrapServers;
@@ -20,7 +17,7 @@ public class CanaryConfiguration {
     private final Duration bootstrapBackOffScale;
     private final String topic;
     private final Map<String, String> topicConfig;
-    private final Duration reconcileInterval;
+    private final long reconcileInterval;
     private final String clientId;
     private final String consumerGroupId;
     private final float[] producerLatencyBuckets;
@@ -50,7 +47,7 @@ public class CanaryConfiguration {
         this.bootstrapBackOffScale = getDurationOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT);
         this.topic = getStringOrDefault(CanaryConstants.TOPIC_ENV, CanaryConstants.TOPIC_DEFAULT);
         this.topicConfig = createTopicConfig(getStringOrDefault(CanaryConstants.TOPIC_CONFIG_ENV, ""));
-        this.reconcileInterval = getDurationOrDefault(CanaryConstants.RECONCILE_INTERVAL_ENV, CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
+        this.reconcileInterval = getLongOrDefault(CanaryConstants.RECONCILE_INTERVAL_ENV, CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
         this.clientId = getStringOrDefault(CanaryConstants.CLIENT_ID_ENV, CanaryConstants.CLIENT_ID_DEFAULT);
         this.consumerGroupId = getStringOrDefault(CanaryConstants.CONSUMER_GROUP_ID_ENV, CanaryConstants.CONSUMER_GROUP_ID_DEFAULT);
         this.producerLatencyBuckets = createLatencyBuckets(getStringOrDefault(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
@@ -138,7 +135,7 @@ public class CanaryConfiguration {
         return topicConfig;
     }
 
-    public Duration getReconcileInterval() {
+    public long getReconcileInterval() {
         return reconcileInterval;
     }
 
