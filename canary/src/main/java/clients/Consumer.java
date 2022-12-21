@@ -40,6 +40,7 @@ public class Consumer implements Client {
     }
 
     public CompletionStage<Void> receiveMessages() {
+        LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         // poll all messages
@@ -49,6 +50,7 @@ public class Consumer implements Client {
         // this will differ
         if (records.count() == 100) {
             future.complete(null);
+            LOGGER.info("All messages successfully received");
         } else {
             LOGGER.error("Failed to poll all the messages");
             future.completeExceptionally(new Exception(String.join("Failed to poll all the messages. Polled: %s", Integer.toString(records.count()))));

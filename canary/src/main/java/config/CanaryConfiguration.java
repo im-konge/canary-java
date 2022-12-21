@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CanaryConfiguration {
-    private final String[] bootstrapServers;
+    private final String bootstrapServers;
     private final int bootstrapBackOffMaxAttempts;
     private final Duration bootstrapBackOffScale;
     private final String topic;
@@ -42,7 +42,7 @@ public class CanaryConfiguration {
     private final Duration dynamicConfigWatcherInterval;
 
     public CanaryConfiguration() {
-        this.bootstrapServers = Environment.getStringOrDefault(CanaryConstants.BOOTSTRAP_SERVERS_ENV, CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT).split(",");
+        this.bootstrapServers = Environment.getStringOrDefault(CanaryConstants.BOOTSTRAP_SERVERS_ENV, CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT);
         this.bootstrapBackOffMaxAttempts = Environment.getIntOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT);
         this.bootstrapBackOffScale = Environment.getDurationOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT);
         this.topic = Environment.getStringOrDefault(CanaryConstants.TOPIC_ENV, CanaryConstants.TOPIC_DEFAULT);
@@ -99,7 +99,7 @@ public class CanaryConfiguration {
 
     private static float[] createLatencyBuckets(String latencyBuckets) {
         String[] values = latencyBuckets.split(",");
-        float[] latencyBucketsArr = {};
+        float[] latencyBucketsArr = new float[values.length];
 
         // TODO: maybe some more intelligent way how to do this
         int index = 0;
@@ -115,7 +115,7 @@ public class CanaryConfiguration {
     }
 
 
-    public String[] getBootstrapServers() {
+    public String getBootstrapServers() {
         return bootstrapServers;
     }
 
@@ -234,7 +234,7 @@ public class CanaryConfiguration {
         }
 
         return "CanaryConfiguration{" +
-            "bootstrapServers='" + Arrays.toString(getBootstrapServers()) + '\'' +
+            "bootstrapServers='" + getBootstrapServers() + '\'' +
             ", bootstrapBackOffMaxAttempts='" + getBootstrapBackOffMaxAttempts() + '\'' +
             ", bootstrapBackOffScale=" + getBootstrapBackOffScale() +
             ", topic=" + getTopic() +

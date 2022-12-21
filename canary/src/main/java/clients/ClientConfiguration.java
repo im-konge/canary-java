@@ -17,8 +17,8 @@ public class ClientConfiguration {
     public static Properties producerProperties(CanaryConfiguration configuration) {
         Properties properties = clientProperties(configuration);
 
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
         return properties;
     }
@@ -27,8 +27,9 @@ public class ClientConfiguration {
         Properties properties = clientProperties(configuration);
 
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, configuration.getConsumerGroupId());
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         return properties;
     }
@@ -47,6 +48,6 @@ public class ClientConfiguration {
 
     private static Properties updatePropertiesWithSecurityConfiguration(Properties properties, CanaryConfiguration configuration) {
         // TODO: add security configuration into properties
-        return null;
+        return properties;
     }
 }

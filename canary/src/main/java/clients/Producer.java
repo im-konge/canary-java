@@ -26,13 +26,14 @@ public class Producer implements Client {
 
     public Producer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.producerProperties(configuration);
-        this.producer = new KafkaProducer<>(properties);
+        this.producer = new KafkaProducer<>(this.properties);
         this.topicName = configuration.getTopic();
         this.producerId = configuration.getClientId();
     }
 
 
     public CompletionStage<Integer> sendMessages() {
+        LOGGER.info("Sending messages to KafkaTopic: {}", topicName);
         CompletableFuture<Integer> future = new CompletableFuture<>();
 
         for (int i = 0; i < 100; i++) {
@@ -45,6 +46,7 @@ public class Producer implements Client {
         }
 
         future.complete(100);
+        LOGGER.info("All messages successfully sent");
 
         return future;
     }

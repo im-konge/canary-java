@@ -50,7 +50,7 @@ public class AdminClient implements Client {
     }
 
     public void createTopic() {
-        LOGGER.info("Creating KafkaTopic: {} with configuration:\n {}", this.topic.topicName(), this.topic.topicConfig().toString());
+        LOGGER.info("Creating KafkaTopic: {} with configuration:\n {}", this.topic.topicName(), this.topic.topicConfig());
 
         // override cleanup policy because it needs to be "delete" (canary doesn't use keys on messages)
         this.topic.topicConfig().put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE);
