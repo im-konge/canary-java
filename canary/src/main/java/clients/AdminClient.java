@@ -20,21 +20,27 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-public class AdminClient {
+public class AdminClient implements Client {
 
     private static final Logger LOGGER = LogManager.getLogger(AdminClient.class);
     private final Admin adminClient;
-
+    private final Properties properties;
     private final Topic topic;
 
     public AdminClient(CanaryConfiguration configuration) {
-        Properties properties = ClientConfiguration.adminProperties(configuration);
-
+        this.properties = ClientConfiguration.adminProperties(configuration);
         this.adminClient = Admin.create(properties);
         this.topic = new Topic(configuration.getTopic(), configuration.getTopicConfig());
     }
 
-    private boolean isTopicCreated() {
+    public void createTopicIfNotExists() {
+        if (!isTopicCreated()) {
+            LOGGER.warn("KafkaTopic: {} not created, going to create it now", this.topic.topicName());
+            createTopic();
+        }
+    }
+
+    public boolean isTopicCreated() {
         ListTopicsResult topicList = this.adminClient.listTopics();
         try {
             return topicList.names().get().contains(this.topic.topicName());
@@ -44,7 +50,7 @@ public class AdminClient {
     }
 
     public void createTopic() {
-        LOGGER.info("Creating KafkaTopic: {} with configuration:\n {}", this.topic.topicName(), this.topic.topicConfig().toString());
+        LOGGER.info("Creating KafkaTopic: {} with configuration:\n {}", this.topic.topicName(), this.topic.topicConfig());
 
         // override cleanup policy because it needs to be "delete" (canary doesn't use keys on messages)
         this.topic.topicConfig().put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE);
@@ -77,5 +83,17 @@ public class AdminClient {
             LOGGER.error("Failed to delete KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void start() {
+        LOGGER.info("Starting Admin client with properties: {}", properties);
+        createTopicIfNotExists();
+    }
+
+    @Override
+    public void stop() {
+        LOGGER.info("Stopping Admin client");
+        deleteTopic();
     }
 }

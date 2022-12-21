@@ -24,7 +24,7 @@ public class HttpServerHandler {
     private static final int HTTP_PORT = 8080;
     private Server server;
 
-    private HttpServerHandler() {
+    public HttpServerHandler() {
         this.server = new Server(HTTP_PORT);
 
         ContextHandler livenessContext = new ContextHandler();
@@ -42,7 +42,7 @@ public class HttpServerHandler {
         server.setHandler(contexts);
     }
 
-    public HttpServerHandler getInstance() {
+    public static HttpServerHandler getInstance() {
         if (httpServerHandler == null) {
             httpServerHandler = new HttpServerHandler();
         }
@@ -51,7 +51,7 @@ public class HttpServerHandler {
 
     public void startHttpServer() {
         try {
-            server.start();
+            getServer().start();
         } catch (Exception e)   {
             LOGGER.error("Failed to start the liveness and readiness webserver", e);
             throw new RuntimeException(e);
@@ -60,11 +60,15 @@ public class HttpServerHandler {
 
     public void stopHttpServer() {
         try {
-            server.stop();
+            getServer().stop();
         } catch (Exception e)   {
             LOGGER.error("Failed to stop the liveness and readiness webserver", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private Server getServer() {
+        return getInstance().server;
     }
 
     public static class LivenessHandler extends AbstractHandler {

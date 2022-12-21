@@ -47,7 +47,7 @@ public class CanaryConstants {
     public static final int BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT = 10;
     public static final Duration BOOTSTRAP_BACKOFF_SCALE_DEFAULT = Duration.ofMillis(5000);
     public static final String TOPIC_DEFAULT = "__strimzi_canary";
-    public static final Duration RECONCILE_INTERVAL_DEFAULT = Duration.ofMillis(30000);
+    public static final long RECONCILE_INTERVAL_DEFAULT = 30000;
     public static final String CLIENT_ID_DEFAULT = "strimzi-canary-client";
     public static final String CONSUMER_GROUP_ID_DEFAULT = "strimzi-canary-group";
     public static final String PRODUCER_LATENCY_BUCKETS_DEFAULT = "2,5,10,20,50,100,200,400";
