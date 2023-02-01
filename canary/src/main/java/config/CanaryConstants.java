@@ -34,11 +34,6 @@ public class CanaryConstants {
     public static final String CONNECTION_CHECK_LATENCY_BUCKETS_ENV = "CONNECTION_CHECK_LATENCY_BUCKETS";
     public static final String STATUS_CHECK_INTERVAL_MS_ENV = "STATUS_CHECK_INTERVAL_MS";
     public static final String STATUS_TIME_WINDOW_MS_ENV = "STATUS_TIME_WINDOW_MS";
-    public static final String DYNAMIC_CONFIG_FILE_ENV = "DYNAMIC_CONFIG_FILE";
-    public static final String DYNAMIC_CONFIG_WATCHER_INTERVAL_ENV = "DYNAMIC_CONFIG_WATCHER_INTERVAL";
-
-    //    SaramaLogEnabledEnvVar              = "SARAMA_LOG_ENABLED" ---> not needed FMPOV, by default `false`
-    //    VerbosityLogLevelEnvVar             = "VERBOSITY_LOG_LEVEL" ---> log level should be surely configurable, but we should go with log4j2 levels (and not 0,1,2) --> backwards compatibility problem?
 
     /**
      * Canary configuration's defaults
@@ -52,7 +47,7 @@ public class CanaryConstants {
     public static final String CONSUMER_GROUP_ID_DEFAULT = "strimzi-canary-group";
     public static final String PRODUCER_LATENCY_BUCKETS_DEFAULT = "2,5,10,20,50,100,200,400";
     public static final String ENDTOEND_LATENCY_BUCKETS_DEFAULT = "5,10,20,50,100,200,400,800";
-    public static final int EXPECTED_CLUSTER_SIZE_DEFAULT = -1;
+    public static final int EXPECTED_CLUSTER_SIZE_DEFAULT = 1;
     public static final String KAFKA_VERSION_DEFAULT = "3.3.1";
     public static final boolean TLS_ENABLED_DEFAULT = false;
     public static final boolean TLS_INSECURE_SKIP_VERIFY_DEFAULT = false;

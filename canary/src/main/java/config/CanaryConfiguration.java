@@ -24,8 +24,6 @@ public class CanaryConfiguration {
     private final float[] endToEndLatencyBuckets;
     private final int expectedClusterSize;
     private final String kafkaVersion;
-    // TODO: maybe not needed
-    private final String dynamicConfigFile;
     private final boolean tlsEnabled;
     private final String tlsCaCert;
     private final String tlsClientCert;
@@ -38,8 +36,6 @@ public class CanaryConfiguration {
     private final float[] connectionCheckLatencyBuckets;
     private final Duration statusCheckInterval;
     private final Duration statusTimeWindow;
-    // TODO: maybe not needed
-    private final Duration dynamicConfigWatcherInterval;
 
     public CanaryConfiguration() {
         this.bootstrapServers = Environment.getStringOrDefault(CanaryConstants.BOOTSTRAP_SERVERS_ENV, CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT);
@@ -54,7 +50,6 @@ public class CanaryConfiguration {
         this.endToEndLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
         this.expectedClusterSize = Environment.getIntOrDefault(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV, CanaryConstants.EXPECTED_CLUSTER_SIZE_DEFAULT);
         this.kafkaVersion = Environment.getStringOrDefault(CanaryConstants.KAFKA_VERSION_ENV, CanaryConstants.KAFKA_VERSION_DEFAULT);
-        this.dynamicConfigFile = Environment.getStringOrDefault(CanaryConstants.DYNAMIC_CONFIG_FILE_ENV, "");
         this.tlsEnabled = Environment.getBooleanOrDefault(CanaryConstants.TLS_ENABLED_ENV, CanaryConstants.TLS_ENABLED_DEFAULT);
         this.tlsCaCert = Environment.getStringOrDefault(CanaryConstants.TLS_CA_CERT_ENV, "");
         this.tlsClientCert = Environment.getStringOrDefault(CanaryConstants.TLS_CLIENT_CERT_ENV, "");
@@ -67,7 +62,6 @@ public class CanaryConfiguration {
         this.connectionCheckLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         this.statusCheckInterval = Environment.getDurationOrDefault(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         this.statusTimeWindow = Environment.getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
-        this.dynamicConfigWatcherInterval = Environment.getDurationOrDefault(CanaryConstants.DYNAMIC_CONFIG_WATCHER_INTERVAL_ENV, CanaryConstants.DYNAMIC_CONFIG_WATCHER_INTERVAL_DEFAULT);
     }
 
     private static Map<String, String> createTopicConfig(String topicConfig) {
@@ -163,10 +157,6 @@ public class CanaryConfiguration {
         return kafkaVersion;
     }
 
-    public String getDynamicConfigFile() {
-        return dynamicConfigFile;
-    }
-
     public boolean isTlsEnabled() {
         return tlsEnabled;
     }
@@ -215,10 +205,6 @@ public class CanaryConfiguration {
         return statusTimeWindow;
     }
 
-    public Duration getDynamicConfigWatcherInterval() {
-        return dynamicConfigWatcherInterval;
-    }
-
     @Override
     public String toString() {
         String tlsCaCert = getTlsCaCert().equals("") ? "" : "[CA cert]";
@@ -246,7 +232,6 @@ public class CanaryConfiguration {
             ", endToEndLatencyBuckets='" + Arrays.toString(getEndToEndLatencyBuckets()) + '\'' +
             ", expectedClusterSize='" + getExpectedClusterSize() + '\'' +
             ", kafkaVersion='" + getKafkaVersion() + '\'' +
-            ", dynamicConfigFile='" + getDynamicConfigFile() + '\'' +
             ", tlsEnabled='" + isTlsEnabled() + '\'' +
             ", tlsCaCert='" + tlsCaCert + '\'' +
             ", tlsClientCert='" + tlsClientCert + '\'' +
@@ -259,7 +244,6 @@ public class CanaryConfiguration {
             ", connectionCheckLatencyBuckets='" + Arrays.toString(getConnectionCheckLatencyBuckets()) + '\'' +
             ", statusCheckInterval='" + getStatusCheckInterval() + '\'' +
             ", statusTimeWindow='" + getStatusTimeWindow() + '\'' +
-            ", dynamicConfigWatcherInterval='" + getDynamicConfigWatcherInterval() + '\'' +
             '}';
     }
 }

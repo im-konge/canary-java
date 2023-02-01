@@ -23,29 +23,32 @@ public class Producer implements Client {
     private final String topicName;
     private final String producerId;
     private final Properties properties;
+    private final int expectedClusterSize;
 
     public Producer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.producerProperties(configuration);
         this.producer = new KafkaProducer<>(this.properties);
         this.topicName = configuration.getTopic();
         this.producerId = configuration.getClientId();
+        this.expectedClusterSize = configuration.getExpectedClusterSize();
     }
-
 
     public CompletionStage<Integer> sendMessages() {
         LOGGER.info("Sending messages to KafkaTopic: {}", topicName);
         CompletableFuture<Integer> future = new CompletableFuture<>();
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < this.expectedClusterSize; i++) {
             try {
-                this.producer.send(new ProducerRecord<>(this.topicName, null, null, null, generateMessage(i))).get();
+                String generatedMessage = generateMessage(i);
+                LOGGER.info("Sending message: {} to partition: {}", generatedMessage, i);
+                this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);
                 future.completeExceptionally(exception);
             }
         }
 
-        future.complete(100);
+        future.complete(expectedClusterSize);
         LOGGER.info("All messages successfully sent");
 
         return future;
