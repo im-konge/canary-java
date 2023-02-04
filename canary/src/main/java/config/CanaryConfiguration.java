@@ -8,7 +8,6 @@ import common.Environment;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CanaryConfiguration {
@@ -42,12 +41,12 @@ public class CanaryConfiguration {
         this.bootstrapBackOffMaxAttempts = Environment.getIntOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT);
         this.bootstrapBackOffScale = Environment.getDurationOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT);
         this.topic = Environment.getStringOrDefault(CanaryConstants.TOPIC_ENV, CanaryConstants.TOPIC_DEFAULT);
-        this.topicConfig = createTopicConfig(Environment.getStringOrDefault(CanaryConstants.TOPIC_CONFIG_ENV, ""));
+        this.topicConfig = CanaryConfigurationUtils.createTopicConfig(Environment.getStringOrDefault(CanaryConstants.TOPIC_CONFIG_ENV, ""));
         this.reconcileInterval = Environment.getLongOrDefault(CanaryConstants.RECONCILE_INTERVAL_ENV, CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
         this.clientId = Environment.getStringOrDefault(CanaryConstants.CLIENT_ID_ENV, CanaryConstants.CLIENT_ID_DEFAULT);
         this.consumerGroupId = Environment.getStringOrDefault(CanaryConstants.CONSUMER_GROUP_ID_ENV, CanaryConstants.CONSUMER_GROUP_ID_DEFAULT);
-        this.producerLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
-        this.endToEndLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
+        this.producerLatencyBuckets = CanaryConfigurationUtils.createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
+        this.endToEndLatencyBuckets = CanaryConfigurationUtils.createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
         this.expectedClusterSize = Environment.getIntOrDefault(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV, CanaryConstants.EXPECTED_CLUSTER_SIZE_DEFAULT);
         this.kafkaVersion = Environment.getStringOrDefault(CanaryConstants.KAFKA_VERSION_ENV, CanaryConstants.KAFKA_VERSION_DEFAULT);
         this.tlsEnabled = Environment.getBooleanOrDefault(CanaryConstants.TLS_ENABLED_ENV, CanaryConstants.TLS_ENABLED_DEFAULT);
@@ -59,7 +58,7 @@ public class CanaryConfiguration {
         this.saslUser = Environment.getStringOrDefault(CanaryConstants.SASL_USER_ENV, "");
         this.saslPassword = Environment.getStringOrDefault(CanaryConstants.SASL_PASSWORD_ENV, "");
         this.connectionCheckInterval = Environment.getDurationOrDefault(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
-        this.connectionCheckLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
+        this.connectionCheckLatencyBuckets = CanaryConfigurationUtils.createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         this.statusCheckInterval = Environment.getDurationOrDefault(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         this.statusTimeWindow = Environment.getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
 
@@ -73,51 +72,6 @@ public class CanaryConfiguration {
             }
         }
     }
-
-    private static Map<String, String> createTopicConfig(String topicConfig) {
-        if (topicConfig.length() == 0) {
-            return null;
-        }
-
-        Map<String, String> topicConfigMap = new HashMap<>();
-        String[] keyPairs = topicConfig.split(";");
-
-        for (String keyPair : keyPairs) {
-            // TODO: this should also check, if we are at the end of the array
-            if (keyPair.length() == 0) {
-                break;
-            }
-
-            String[] keyAndValue = keyPair.split("=");
-
-            // key has to be not empty and the whole keyAndValue should contain 2 records (key, value)
-            if (keyAndValue.length != 2 || keyAndValue[0].length() == 0) {
-                throw new IllegalArgumentException(String.format("Error parsing topic configuration - %s: %s is not a valid key-value pair", topicConfig, keyPair));
-            }
-
-            topicConfigMap.put(keyAndValue[0], keyAndValue[1]);
-        }
-
-        return topicConfigMap;
-    }
-
-    private static float[] createLatencyBuckets(String latencyBuckets) {
-        String[] values = latencyBuckets.split(",");
-        float[] latencyBucketsArr = new float[values.length];
-
-        // TODO: maybe some more intelligent way how to do this
-        int index = 0;
-        for (String value : values) {
-            // the empty value should not be parsed
-            if (value.length() != 0) {
-                latencyBucketsArr[index] = Float.parseFloat(value);
-                index++;
-            }
-        }
-
-        return latencyBucketsArr;
-    }
-
 
     public String getBootstrapServers() {
         return bootstrapServers;
