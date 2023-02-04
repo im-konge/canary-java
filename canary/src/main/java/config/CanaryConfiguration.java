@@ -62,6 +62,16 @@ public class CanaryConfiguration {
         this.connectionCheckLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         this.statusCheckInterval = Environment.getDurationOrDefault(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         this.statusTimeWindow = Environment.getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
+
+        // check if username and password is specified in case that SASL mechanism isn't empty
+        if (!this.saslMechanism.equals("")) {
+            if (this.saslUser.equals("")) {
+                throw new IllegalArgumentException("SASL user must be specified");
+            }
+            if (this.saslPassword.equals("")) {
+                throw new IllegalArgumentException("SASL password must be specified");
+            }
+        }
     }
 
     private static Map<String, String> createTopicConfig(String topicConfig) {

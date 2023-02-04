@@ -4,10 +4,15 @@
  */
 package clients;
 
+import common.security.SaslType;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.security.plain.PlainLoginModule;
+import org.apache.kafka.common.security.scram.ScramLoginModule;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -47,7 +52,49 @@ public class ClientConfiguration {
     }
 
     private static Properties updatePropertiesWithSecurityConfiguration(Properties properties, CanaryConfiguration configuration) {
-        // TODO: add security configuration into properties
+        if (configuration.isTlsEnabled()) {
+            properties = updatePropertiesWithTlsConfiguration(properties, configuration);
+        }
+        if (shouldUpdatePropertiesWithSaslConfig(configuration)) {
+            properties = updatePropertiesWithSaslConfiguration(properties, configuration);
+        }
+
         return properties;
+    }
+
+    private static Properties updatePropertiesWithTlsConfiguration(Properties properties, CanaryConfiguration configuration) {
+        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+        properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PEM");
+        properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, configuration.getTlsCaCert());
+
+        properties.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PEM");
+        properties.put(SslConfigs.SSL_KEYSTORE_CERTIFICATE_CHAIN_CONFIG, configuration.getTlsClientCert());
+        properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, configuration.getTlsClientKey());
+
+        return null;
+    }
+
+    private static Properties updatePropertiesWithSaslConfiguration(Properties properties, CanaryConfiguration configuration) {
+        SaslType saslType = SaslType.valueOf(configuration.getSaslMechanism());
+        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+        properties.put(SaslConfigs.SASL_MECHANISM, saslType.getKafkaProperty());
+
+        String saslJaasConfig = saslType.equals(SaslType.PLAIN) ? PlainLoginModule.class.toString() : ScramLoginModule.class.toString();
+        saslJaasConfig += String.format(" required username=%s password=%s", configuration.getSaslUser(), configuration.getSaslPassword());
+
+        if (saslType.equals(SaslType.SCRAM_SHA_512)) {
+            saslJaasConfig += "algorithm=SHA-512";
+        }
+
+        saslJaasConfig += ";";
+        properties.put(SaslConfigs.SASL_JAAS_CONFIG, saslJaasConfig);
+
+        return properties;
+    }
+
+    private static boolean shouldUpdatePropertiesWithSaslConfig(CanaryConfiguration configuration) {
+        return configuration.getSaslMechanism() != null
+            && !configuration.getSaslMechanism().equals("")
+            && SaslType.getAllSaslTypes().contains(configuration.getSaslMechanism());
     }
 }
