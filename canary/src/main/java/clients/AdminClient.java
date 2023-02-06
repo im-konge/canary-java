@@ -6,9 +6,11 @@ package clients;
 
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.admin.CreatePartitionsResult;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.DeleteTopicsResult;
+import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
+import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.KafkaFuture;
 import org.apache.kafka.common.config.TopicConfig;
@@ -17,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import topic.Topic;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
@@ -26,17 +29,22 @@ public class AdminClient implements Client {
     private final Admin adminClient;
     private final Properties properties;
     private final Topic topic;
+    private final int expectedClusterSize;
 
     public AdminClient(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.adminProperties(configuration);
         this.adminClient = Admin.create(properties);
         this.topic = new Topic(configuration.getTopic(), configuration.getTopicConfig());
+        this.expectedClusterSize = configuration.getExpectedClusterSize();
     }
 
-    public void createTopicIfNotExists() {
+    public void createOrReplaceTopicIfNotExists() {
         if (!isTopicCreated()) {
             LOGGER.warn("KafkaTopic: {} not created, going to create it now", this.topic.topicName());
             createTopic();
+        } else if (shouldUpdateTopic()) {
+            LOGGER.warn("KafkaTopic: {} partitions needs to be updated, going to do it now", this.topic.topicName());
+            updateTopic();
         }
     }
 
@@ -49,13 +57,23 @@ public class AdminClient implements Client {
         }
     }
 
+    public boolean shouldUpdateTopic() {
+        DescribeTopicsResult topicDesc = this.adminClient.describeTopics(Collections.singletonList(this.topic.topicName()));
+
+        try {
+            return topicDesc.topicNameValues().get(this.topic.topicName()).get().partitions().size() < this.expectedClusterSize;
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void createTopic() {
         LOGGER.info("Creating KafkaTopic: {} with configuration:\n {}", this.topic.topicName(), this.topic.topicConfig());
 
         // override cleanup policy because it needs to be "delete" (canary doesn't use keys on messages)
         this.topic.topicConfig().put(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE);
 
-        NewTopic topic = new NewTopic(this.topic.topicName(), -1, (short) -1).configs(this.topic.topicConfig());
+        NewTopic topic = new NewTopic(this.topic.topicName(), this.expectedClusterSize, (short) this.expectedClusterSize).configs(this.topic.topicConfig());
         CreateTopicsResult creationResult = this.adminClient.createTopics(Collections.singletonList(topic));
 
         KafkaFuture<Void> kafkaFuture = creationResult.all();
@@ -69,18 +87,20 @@ public class AdminClient implements Client {
         }
     }
 
-    public void deleteTopic() {
-        LOGGER.info("Deleting KafkaTopic: {}", this.topic.topicName());
+    public void updateTopic() {
+        LOGGER.info("Updating KafkaTopic: {} to have {} partitions", this.topic.topicName(), this.expectedClusterSize);
 
-        DeleteTopicsResult deleteResult = this.adminClient.deleteTopics(Collections.singletonList(this.topic.topicName()));
+        Map<String, NewPartitions> newPartitionSet = Collections.singletonMap(topic.topicName(), NewPartitions.increaseTo(expectedClusterSize));
 
-        KafkaFuture<Void> kafkaFuture = deleteResult.all();
+        CreatePartitionsResult createPartitionsResult = this.adminClient.createPartitions(newPartitionSet);
+
+        KafkaFuture<Void> kafkaFuture = createPartitionsResult.all();
 
         try {
             kafkaFuture.get();
-            LOGGER.info("KafkaTopic: {} successfully deleted", this.topic.topicName());
+            LOGGER.info("KafkaTopic: {} successfully updated to {} partitions", this.topic.topicName(), this.expectedClusterSize);
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Failed to delete KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
+            LOGGER.error("Failed to update KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
             e.printStackTrace();
         }
     }
@@ -88,12 +108,12 @@ public class AdminClient implements Client {
     @Override
     public void start() {
         LOGGER.info("Starting Admin client with properties: {}", properties);
-        createTopicIfNotExists();
+        createOrReplaceTopicIfNotExists();
     }
 
     @Override
     public void stop() {
         LOGGER.info("Stopping Admin client");
-        deleteTopic();
+        this.adminClient.close();
     }
 }

@@ -5,13 +5,14 @@
 package clients;
 
 import config.CanaryConfiguration;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -22,16 +23,30 @@ public class Consumer implements Client {
     private final KafkaConsumer<String, String> consumer;
     private final String topicName;
     private final Properties properties;
+    private final int expectedClusterSize;
 
     public Consumer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.consumerProperties(configuration);
         this.consumer = new KafkaConsumer<>(properties);
         this.topicName = configuration.getTopic();
+        this.expectedClusterSize = configuration.getExpectedClusterSize();
     }
 
-    private void subscribe() {
-        LOGGER.info("Subscribing to topic: {}", topicName);
-        this.consumer.subscribe(Collections.singletonList(topicName));
+    private void assignPartitions() {
+        LOGGER.info("Assigning: {} number of partitions", String.valueOf(expectedClusterSize));
+        List<TopicPartition> topicPartitions = getTopicPartitions();
+
+        this.consumer.assign(topicPartitions);
+    }
+
+    private List<TopicPartition> getTopicPartitions() {
+        List<TopicPartition> topicPartitions = new ArrayList<>();
+
+        for (int i = 0; i < expectedClusterSize; i++) {
+            topicPartitions.add(new TopicPartition(topicName, i));
+        }
+
+        return topicPartitions;
     }
 
     private void unsubscribe() {
@@ -43,17 +58,21 @@ public class Consumer implements Client {
         LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
-        // poll all messages
-        // TODO: add assignment of topic partitions etc
-        ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofMillis(30000));
+        int messageCount = 0;
 
-        // this will differ
-        if (records.count() == 100) {
+        // poll all messages
+        for (int i = 0; i < expectedClusterSize; i++) {
+            messageCount += this.consumer.poll(Duration.ofMillis(30000)).count();
+        }
+
+        if (messageCount == expectedClusterSize) {
+            // commit current offset
+            this.consumer.commitSync();
             future.complete(null);
             LOGGER.info("All messages successfully received");
         } else {
             LOGGER.error("Failed to poll all the messages");
-            future.completeExceptionally(new Exception(String.join("Failed to poll all the messages. Polled: %s", Integer.toString(records.count()))));
+            future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + messageCount));
         }
 
         return future;
@@ -62,12 +81,13 @@ public class Consumer implements Client {
     @Override
     public void start() {
         LOGGER.info("Starting KafkaConsumer with properties: {}", properties);
-        subscribe();
+        assignPartitions();
     }
 
     @Override
     public void stop() {
         LOGGER.info("Stopping KafkaConsumer");
         unsubscribe();
+        this.consumer.close();
     }
 }
