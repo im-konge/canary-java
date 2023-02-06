@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.security.plain.PlainLoginModule;
 import org.apache.kafka.common.security.scram.ScramLoginModule;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -63,7 +64,7 @@ public class ClientConfiguration {
     }
 
     private static Properties updatePropertiesWithTlsConfiguration(Properties properties, CanaryConfiguration configuration) {
-        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.SSL);
         properties.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PEM");
         properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, configuration.getTlsCaCert());
 
@@ -76,7 +77,7 @@ public class ClientConfiguration {
 
     private static Properties updatePropertiesWithSaslConfiguration(Properties properties, CanaryConfiguration configuration) {
         SaslType saslType = SaslType.valueOf(configuration.getSaslMechanism());
-        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+        properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.SASL_SSL);
         properties.put(SaslConfigs.SASL_MECHANISM, saslType.getKafkaProperty());
 
         String saslJaasConfig = saslType.equals(SaslType.PLAIN) ? PlainLoginModule.class.toString() : ScramLoginModule.class.toString();
@@ -94,7 +95,7 @@ public class ClientConfiguration {
 
     private static boolean shouldUpdatePropertiesWithSaslConfig(CanaryConfiguration configuration) {
         return configuration.getSaslMechanism() != null
-            && !configuration.getSaslMechanism().equals("")
+            && !configuration.getSaslMechanism().isEmpty()
             && SaslType.getAllSaslTypes().contains(configuration.getSaslMechanism());
     }
 }
