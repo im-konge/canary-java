@@ -6,22 +6,18 @@ package clients;
 
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.admin.AlterConfigOp;
-import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.CreatePartitionsResult;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
-import org.apache.kafka.clients.admin.DeleteTopicsResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
+import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.KafkaFuture;
-import org.apache.kafka.common.config.ConfigResource;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import topic.Topic;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -94,33 +90,17 @@ public class AdminClient implements Client {
     public void updateTopic() {
         LOGGER.info("Updating KafkaTopic: {} to have {} partitions", this.topic.topicName(), this.expectedClusterSize);
 
-        ConfigResource topicResource = new ConfigResource(ConfigResource.Type.TOPIC, this.topic.topicName());
-        ConfigEntry configEntry = new ConfigEntry("num.partitions", String.valueOf(this.expectedClusterSize));
-        AlterConfigOp configOp = new AlterConfigOp(configEntry, AlterConfigOp.OpType.SET);
+        Map<String, NewPartitions> newPartitionSet = Collections.singletonMap(topic.topicName(), NewPartitions.increaseTo(expectedClusterSize));
 
-        Map<ConfigResource, Collection<AlterConfigOp>> alterConfiguration = Collections.singletonMap(topicResource, Arrays.asList(configOp));
+        CreatePartitionsResult createPartitionsResult = this.adminClient.createPartitions(newPartitionSet);
 
-        try {
-            this.adminClient.incrementalAlterConfigs(alterConfiguration).all().get();
-            LOGGER.info("KafkaTopic: {} successfully updated to {} partitions", this.topic.topicName(), this.expectedClusterSize);
-        } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Failed to update KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public void deleteTopic() {
-        LOGGER.info("Deleting KafkaTopic: {}", this.topic.topicName());
-
-        DeleteTopicsResult deleteResult = this.adminClient.deleteTopics(Collections.singletonList(this.topic.topicName()));
-
-        KafkaFuture<Void> kafkaFuture = deleteResult.all();
+        KafkaFuture<Void> kafkaFuture = createPartitionsResult.all();
 
         try {
             kafkaFuture.get();
-            LOGGER.info("KafkaTopic: {} successfully deleted", this.topic.topicName());
+            LOGGER.info("KafkaTopic: {} successfully updated to {} partitions", this.topic.topicName(), this.expectedClusterSize);
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Failed to delete KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
+            LOGGER.error("Failed to update KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
             e.printStackTrace();
         }
     }
@@ -134,6 +114,6 @@ public class AdminClient implements Client {
     @Override
     public void stop() {
         LOGGER.info("Stopping Admin client");
-        deleteTopic();
+        this.adminClient.close();
     }
 }
