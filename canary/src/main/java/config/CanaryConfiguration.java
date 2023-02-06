@@ -64,11 +64,11 @@ public class CanaryConfiguration {
         this.statusTimeWindow = Environment.getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
 
         // check if username and password is specified in case that SASL mechanism isn't empty
-        if (!this.saslMechanism.equals("")) {
-            if (this.saslUser.equals("")) {
+        if (!this.saslMechanism.isEmpty()) {
+            if (this.saslUser.isEmpty()) {
                 throw new IllegalArgumentException("SASL user must be specified");
             }
-            if (this.saslPassword.equals("")) {
+            if (this.saslPassword.isEmpty()) {
                 throw new IllegalArgumentException("SASL password must be specified");
             }
         }
