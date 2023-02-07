@@ -4,18 +4,23 @@
  */
 package config;
 
+import common.security.SaslType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 
 public class CanaryConfigurationTest {
     @Test
     void testDefaultCanaryConfiguration() {
-        CanaryConfiguration canaryConfiguration = new CanaryConfiguration();
+        CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(Collections.emptyMap());
         float[] defaultProducerLatencyBuckets = {2.0F, 5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F};
         float[] defaultE2ELatencyBuckets = {5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F, 800.0F};
         float[] defaultConnectionCheckLatency = {100.0F, 200.0F, 400.0F, 800.0F, 1600.0F};
@@ -49,9 +54,14 @@ public class CanaryConfigurationTest {
     void testCustomCanaryConfiguration() {
         String bootstrapServer = "my-cluster-kafka-bootstrap:9092";
         int bootstrapBackoffMax = 3;
+
         Duration bootstrapBackOffScale = Duration.ofMillis(23);
+        String bootstrapBackOffScaleString = "23";
+
         String topicName = "my-custom-topic-name";
-        Duration reconciliationInterval = Duration.ofMillis(39);
+
+        long reconciliationInterval = 39;
+
         String clientId = "my-custom-client";
         String consumerGroup = "my-random-consumer-group-4543323";
 
@@ -69,36 +79,43 @@ public class CanaryConfigurationTest {
         String tlsCaCert = "ca-certificate-value";
         String tlsClientCert = "client-certificate-value";
         String tlsClientKey = "client-key-value";
-        String saslMechanism = "SCRAM-SHA-512";
+        String saslMechanism = SaslType.SCRAM_SHA_512.toString();
         String saslUser = "alice";
         String saslPassword = "in-wonderland";
+
         Duration connectionCheckInterval = Duration.ofMillis(123000);
+        String connectionCheckIntervalString = "123000";
+
         Duration statusCheckInterval = Duration.ofMillis(9999);
+        String statusCheckIntervalString = "9999";
+
         Duration statusTimeWindow = Duration.ofMillis(65523);
+        String statusTimeWindowString = "65523";
 
-        System.setProperty(CanaryConstants.BOOTSTRAP_SERVERS_ENV, bootstrapServer);
-        System.setProperty(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, String.valueOf(bootstrapBackoffMax));
-        System.setProperty(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, bootstrapBackOffScale.toString());
-        System.setProperty(CanaryConstants.TOPIC_ENV, topicName);
-        System.setProperty(CanaryConstants.RECONCILE_INTERVAL_ENV, reconciliationInterval.toString());
-        System.setProperty(CanaryConstants.CLIENT_ID_ENV, clientId);
-        System.setProperty(CanaryConstants.CONSUMER_GROUP_ID_ENV, consumerGroup);
-        System.setProperty(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, producerLatencyBuckets);
-        System.setProperty(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, e2ELatencyBuckets);
-        System.setProperty(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV, String.valueOf(expectedClusterSize));
-        System.setProperty(CanaryConstants.TLS_ENABLED_ENV, String.valueOf(tlsEnabled));
-        System.setProperty(CanaryConstants.TLS_CA_CERT_ENV, tlsCaCert);
-        System.setProperty(CanaryConstants.TLS_CLIENT_CERT_ENV, tlsClientCert);
-        System.setProperty(CanaryConstants.TLS_CLIENT_KEY_ENV, tlsClientKey);
-        System.setProperty(CanaryConstants.SASL_MECHANISM_ENV, saslMechanism);
-        System.setProperty(CanaryConstants.SASL_USER_ENV, saslUser);
-        System.setProperty(CanaryConstants.SASL_PASSWORD_ENV, saslPassword);
-        System.setProperty(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, connectionCheckInterval.toString());
-        System.setProperty(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, connectionCheckLatencyBuckets);
-        System.setProperty(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, statusCheckInterval.toString());
-        System.setProperty(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, statusTimeWindow.toString());
+        Map<String, String> testConfigurationMap = new HashMap<>();
+        testConfigurationMap.put(CanaryConstants.BOOTSTRAP_SERVERS_ENV, bootstrapServer);
+        testConfigurationMap.put(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, String.valueOf(bootstrapBackoffMax));
+        testConfigurationMap.put(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, bootstrapBackOffScaleString);
+        testConfigurationMap.put(CanaryConstants.TOPIC_ENV, topicName);
+        testConfigurationMap.put(CanaryConstants.RECONCILE_INTERVAL_ENV, String.valueOf(reconciliationInterval));
+        testConfigurationMap.put(CanaryConstants.CLIENT_ID_ENV, clientId);
+        testConfigurationMap.put(CanaryConstants.CONSUMER_GROUP_ID_ENV, consumerGroup);
+        testConfigurationMap.put(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, producerLatencyBuckets);
+        testConfigurationMap.put(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, e2ELatencyBuckets);
+        testConfigurationMap.put(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV, String.valueOf(expectedClusterSize));
+        testConfigurationMap.put(CanaryConstants.TLS_ENABLED_ENV, String.valueOf(tlsEnabled));
+        testConfigurationMap.put(CanaryConstants.TLS_CA_CERT_ENV, tlsCaCert);
+        testConfigurationMap.put(CanaryConstants.TLS_CLIENT_CERT_ENV, tlsClientCert);
+        testConfigurationMap.put(CanaryConstants.TLS_CLIENT_KEY_ENV, tlsClientKey);
+        testConfigurationMap.put(CanaryConstants.SASL_MECHANISM_ENV, saslMechanism);
+        testConfigurationMap.put(CanaryConstants.SASL_USER_ENV, saslUser);
+        testConfigurationMap.put(CanaryConstants.SASL_PASSWORD_ENV, saslPassword);
+        testConfigurationMap.put(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, connectionCheckIntervalString);
+        testConfigurationMap.put(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, connectionCheckLatencyBuckets);
+        testConfigurationMap.put(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, statusCheckIntervalString);
+        testConfigurationMap.put(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, statusTimeWindowString);
 
-        CanaryConfiguration canaryConfiguration = new CanaryConfiguration();
+        CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(testConfigurationMap);
 
         assertThat(canaryConfiguration.getBootstrapServers(), is(bootstrapServer));
         assertThat(canaryConfiguration.getBootstrapBackOffMaxAttempts(), is(bootstrapBackoffMax));
@@ -121,5 +138,28 @@ public class CanaryConfigurationTest {
         assertThat(canaryConfiguration.getConnectionCheckLatencyBuckets(), is(connectionCheckLatencyBucketsFloat));
         assertThat(canaryConfiguration.getStatusCheckInterval(), is(statusCheckInterval));
         assertThat(canaryConfiguration.getStatusTimeWindow(), is(statusTimeWindow));
+    }
+
+    @Test
+    void testSaslConfiguration() {
+        String saslMechanism = SaslType.SCRAM_SHA_512.toString();
+
+        Map<String, String> testCanaryConfiguration = new HashMap<>();
+        testCanaryConfiguration.put(CanaryConstants.SASL_MECHANISM_ENV, saslMechanism);
+
+        assertThrows(IllegalArgumentException.class, () -> CanaryConfiguration.fromMap(testCanaryConfiguration));
+
+        String saslUser = "alice";
+        testCanaryConfiguration.put(CanaryConstants.SASL_USER_ENV, saslUser);
+
+        assertThrows(IllegalArgumentException.class, () -> CanaryConfiguration.fromMap(testCanaryConfiguration));
+
+        String saslPassword = "alice-password";
+        testCanaryConfiguration.put(CanaryConstants.SASL_PASSWORD_ENV, saslPassword);
+
+        CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(testCanaryConfiguration);
+        assertThat(canaryConfiguration.getSaslMechanism(), is(saslMechanism));
+        assertThat(canaryConfiguration.getSaslUser(), is(saslUser));
+        assertThat(canaryConfiguration.getSaslPassword(), is(saslPassword));
     }
 }
