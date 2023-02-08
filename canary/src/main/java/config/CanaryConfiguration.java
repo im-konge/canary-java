@@ -4,12 +4,17 @@
  */
 package config;
 
-import common.Environment;
-
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+
+import static config.CanaryConfigurationUtils.createLatencyBuckets;
+import static config.CanaryConfigurationUtils.createTopicConfig;
+import static config.CanaryConfigurationUtils.parseBooleanOrDefault;
+import static config.CanaryConfigurationUtils.parseDurationOrDefault;
+import static config.CanaryConfigurationUtils.parseIntOrDefault;
+import static config.CanaryConfigurationUtils.parseLongOrDefault;
+import static config.CanaryConfigurationUtils.parseStringOrDefault;
 
 public class CanaryConfiguration {
     private final String bootstrapServers;
@@ -37,87 +42,123 @@ public class CanaryConfiguration {
     private final Duration statusCheckInterval;
     private final Duration statusTimeWindow;
 
-    public CanaryConfiguration() {
-        this.bootstrapServers = Environment.getStringOrDefault(CanaryConstants.BOOTSTRAP_SERVERS_ENV, CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT);
-        this.bootstrapBackOffMaxAttempts = Environment.getIntOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT);
-        this.bootstrapBackOffScale = Environment.getDurationOrDefault(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT);
-        this.topic = Environment.getStringOrDefault(CanaryConstants.TOPIC_ENV, CanaryConstants.TOPIC_DEFAULT);
-        this.topicConfig = createTopicConfig(Environment.getStringOrDefault(CanaryConstants.TOPIC_CONFIG_ENV, ""));
-        this.reconcileInterval = Environment.getLongOrDefault(CanaryConstants.RECONCILE_INTERVAL_ENV, CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
-        this.clientId = Environment.getStringOrDefault(CanaryConstants.CLIENT_ID_ENV, CanaryConstants.CLIENT_ID_DEFAULT);
-        this.consumerGroupId = Environment.getStringOrDefault(CanaryConstants.CONSUMER_GROUP_ID_ENV, CanaryConstants.CONSUMER_GROUP_ID_DEFAULT);
-        this.producerLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV, CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
-        this.endToEndLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV, CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
-        this.expectedClusterSize = Environment.getIntOrDefault(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV, CanaryConstants.EXPECTED_CLUSTER_SIZE_DEFAULT);
-        this.kafkaVersion = Environment.getStringOrDefault(CanaryConstants.KAFKA_VERSION_ENV, CanaryConstants.KAFKA_VERSION_DEFAULT);
-        this.tlsEnabled = Environment.getBooleanOrDefault(CanaryConstants.TLS_ENABLED_ENV, CanaryConstants.TLS_ENABLED_DEFAULT);
-        this.tlsCaCert = Environment.getStringOrDefault(CanaryConstants.TLS_CA_CERT_ENV, "");
-        this.tlsClientCert = Environment.getStringOrDefault(CanaryConstants.TLS_CLIENT_CERT_ENV, "");
-        this.tlsClientKey = Environment.getStringOrDefault(CanaryConstants.TLS_CLIENT_KEY_ENV, "");
-        this.tlsInsecureSkipVerify = Environment.getBooleanOrDefault(CanaryConstants.TLS_INSECURE_SKIP_VERIFY_ENV, CanaryConstants.TLS_INSECURE_SKIP_VERIFY_DEFAULT);
-        this.saslMechanism = Environment.getStringOrDefault(CanaryConstants.SASL_MECHANISM_ENV, "");
-        this.saslUser = Environment.getStringOrDefault(CanaryConstants.SASL_USER_ENV, "");
-        this.saslPassword = Environment.getStringOrDefault(CanaryConstants.SASL_PASSWORD_ENV, "");
-        this.connectionCheckInterval = Environment.getDurationOrDefault(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
-        this.connectionCheckLatencyBuckets = createLatencyBuckets(Environment.getStringOrDefault(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
-        this.statusCheckInterval = Environment.getDurationOrDefault(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
-        this.statusTimeWindow = Environment.getDurationOrDefault(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
+    @SuppressWarnings({"checkstyle:ParameterNumber"})
+    public CanaryConfiguration(
+        String bootstrapServers,
+        int bootstrapBackOffMaxAttempts,
+        Duration bootstrapBackOffScale,
+        String topic,
+        Map<String, String> topicConfig,
+        long reconcileInterval,
+        String clientId,
+        String consumerGroupId,
+        float[] producerLatencyBuckets,
+        float[] endToEndLatencyBuckets,
+        int expectedClusterSize,
+        String kafkaVersion,
+        boolean tlsEnabled,
+        String tlsCaCert,
+        String tlsClientCert,
+        String tlsClientKey,
+        boolean tlsInsecureSkipVerify,
+        String saslMechanism,
+        String saslUser,
+        String saslPassword,
+        Duration connectionCheckInterval,
+        float[] connectionCheckLatencyBuckets,
+        Duration statusCheckInterval,
+        Duration statusTimeWindow
+    ) {
+        this.bootstrapServers = bootstrapServers;
+        this.bootstrapBackOffMaxAttempts = bootstrapBackOffMaxAttempts;
+        this.bootstrapBackOffScale = bootstrapBackOffScale;
+        this.topic = topic;
+        this.topicConfig = topicConfig;
+        this.reconcileInterval = reconcileInterval;
+        this.clientId = clientId;
+        this.consumerGroupId = consumerGroupId;
+        this.producerLatencyBuckets = producerLatencyBuckets;
+        this.endToEndLatencyBuckets = endToEndLatencyBuckets;
+        this.expectedClusterSize = expectedClusterSize;
+        this.kafkaVersion = kafkaVersion;
+        this.tlsEnabled = tlsEnabled;
+        this.tlsCaCert = tlsCaCert;
+        this.tlsClientCert = tlsClientCert;
+        this.tlsClientKey = tlsClientKey;
+        this.tlsInsecureSkipVerify = tlsInsecureSkipVerify;
+        this.saslMechanism = saslMechanism;
+        this.saslUser = saslUser;
+        this.saslPassword = saslPassword;
+        this.connectionCheckInterval = connectionCheckInterval;
+        this.connectionCheckLatencyBuckets = connectionCheckLatencyBuckets;
+        this.statusCheckInterval = statusCheckInterval;
+        this.statusTimeWindow = statusTimeWindow;
+    }
+
+    public static CanaryConfiguration fromMap(Map<String, String> map) {
+
+        String bootstrapServers = parseStringOrDefault(map.get(CanaryConstants.BOOTSTRAP_SERVERS_ENV), CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT);
+        int bootstrapBackOffMaxAttempts = parseIntOrDefault(map.get(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV), CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT);
+        Duration bootstrapBackOffScale = parseDurationOrDefault(map.get(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV), CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT);
+        String topic = parseStringOrDefault(map.get(CanaryConstants.TOPIC_ENV), CanaryConstants.TOPIC_DEFAULT);
+        Map<String, String> topicConfig = createTopicConfig(parseStringOrDefault(map.get(CanaryConstants.TOPIC_CONFIG_ENV), ""));
+        long reconcileInterval = parseLongOrDefault(map.get(CanaryConstants.RECONCILE_INTERVAL_ENV), CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
+        String clientId = parseStringOrDefault(map.get(CanaryConstants.CLIENT_ID_ENV), CanaryConstants.CLIENT_ID_DEFAULT);
+        String consumerGroupId = parseStringOrDefault(map.get(CanaryConstants.CONSUMER_GROUP_ID_ENV), CanaryConstants.CONSUMER_GROUP_ID_DEFAULT);
+        float[] producerLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV), CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
+        float[] endToEndLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV), CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
+        int expectedClusterSize = parseIntOrDefault(map.get(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV), CanaryConstants.EXPECTED_CLUSTER_SIZE_DEFAULT);
+        String kafkaVersion = parseStringOrDefault(map.get(CanaryConstants.KAFKA_VERSION_ENV), CanaryConstants.KAFKA_VERSION_DEFAULT);
+        boolean tlsEnabled = parseBooleanOrDefault(map.get(CanaryConstants.TLS_ENABLED_ENV), CanaryConstants.TLS_ENABLED_DEFAULT);
+        String tlsCaCert = parseStringOrDefault(map.get(CanaryConstants.TLS_CA_CERT_ENV), "");
+        String tlsClientCert = parseStringOrDefault(map.get(CanaryConstants.TLS_CLIENT_CERT_ENV), "");
+        String tlsClientKey = parseStringOrDefault(map.get(CanaryConstants.TLS_CLIENT_KEY_ENV), "");
+        boolean tlsInsecureSkipVerify = parseBooleanOrDefault(map.get(CanaryConstants.TLS_INSECURE_SKIP_VERIFY_ENV), CanaryConstants.TLS_INSECURE_SKIP_VERIFY_DEFAULT);
+        String saslMechanism = parseStringOrDefault(map.get(CanaryConstants.SASL_MECHANISM_ENV), "");
+        String saslUser = parseStringOrDefault(map.get(CanaryConstants.SASL_USER_ENV), "");
+        String saslPassword = parseStringOrDefault(map.get(CanaryConstants.SASL_PASSWORD_ENV), "");
+        Duration connectionCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV), CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
+        float[] connectionCheckLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV), CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
+        Duration statusCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV), CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
+        Duration statusTimeWindow = parseDurationOrDefault(map.get(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV), CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
 
         // check if username and password is specified in case that SASL mechanism isn't empty
-        if (!this.saslMechanism.isEmpty()) {
-            if (this.saslUser.isEmpty()) {
+        if (!saslMechanism.isEmpty()) {
+            if (saslUser.isEmpty()) {
                 throw new IllegalArgumentException("SASL user must be specified");
             }
-            if (this.saslPassword.isEmpty()) {
+            if (saslPassword.isEmpty()) {
                 throw new IllegalArgumentException("SASL password must be specified");
             }
         }
+
+        return new CanaryConfiguration(
+            bootstrapServers,
+            bootstrapBackOffMaxAttempts,
+            bootstrapBackOffScale,
+            topic,
+            topicConfig,
+            reconcileInterval,
+            clientId,
+            consumerGroupId,
+            producerLatencyBuckets,
+            endToEndLatencyBuckets,
+            expectedClusterSize,
+            kafkaVersion,
+            tlsEnabled,
+            tlsCaCert,
+            tlsClientCert,
+            tlsClientKey,
+            tlsInsecureSkipVerify,
+            saslMechanism,
+            saslUser,
+            saslPassword,
+            connectionCheckInterval,
+            connectionCheckLatencyBuckets,
+            statusCheckInterval,
+            statusTimeWindow
+        );
     }
-
-    private static Map<String, String> createTopicConfig(String topicConfig) {
-        if (topicConfig.length() == 0) {
-            return null;
-        }
-
-        Map<String, String> topicConfigMap = new HashMap<>();
-        String[] keyPairs = topicConfig.split(";");
-
-        for (String keyPair : keyPairs) {
-            // TODO: this should also check, if we are at the end of the array
-            if (keyPair.length() == 0) {
-                break;
-            }
-
-            String[] keyAndValue = keyPair.split("=");
-
-            // key has to be not empty and the whole keyAndValue should contain 2 records (key, value)
-            if (keyAndValue.length != 2 || keyAndValue[0].length() == 0) {
-                throw new IllegalArgumentException(String.format("Error parsing topic configuration - %s: %s is not a valid key-value pair", topicConfig, keyPair));
-            }
-
-            topicConfigMap.put(keyAndValue[0], keyAndValue[1]);
-        }
-
-        return topicConfigMap;
-    }
-
-    private static float[] createLatencyBuckets(String latencyBuckets) {
-        String[] values = latencyBuckets.split(",");
-        float[] latencyBucketsArr = new float[values.length];
-
-        // TODO: maybe some more intelligent way how to do this
-        int index = 0;
-        for (String value : values) {
-            // the empty value should not be parsed
-            if (value.length() != 0) {
-                latencyBucketsArr[index] = Float.parseFloat(value);
-                index++;
-            }
-        }
-
-        return latencyBucketsArr;
-    }
-
 
     public String getBootstrapServers() {
         return bootstrapServers;
