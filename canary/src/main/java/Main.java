@@ -17,13 +17,14 @@ public class Main {
         Canary canary = new Canary(configuration);
 
         LOGGER.info("Starting HTTP server");
-        HttpServerHandler.getInstance().startHttpServer();
+        HttpServerHandler httpServerHandler = new HttpServerHandler();
+        httpServerHandler.startHttpServer();
 
         canary.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Shutting down HTTP server");
-            HttpServerHandler.getInstance().stopHttpServer();
+            httpServerHandler.stopHttpServer();
 
             canary.stop();
         }));

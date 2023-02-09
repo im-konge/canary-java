@@ -4,6 +4,7 @@
  */
 package servers;
 
+import common.metrics.MetricsRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Request;
@@ -20,7 +21,6 @@ import java.io.IOException;
 public class HttpServerHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(HttpServerHandler.class);
-    private static HttpServerHandler httpServerHandler;
     private static final int HTTP_PORT = 8080;
     private Server server;
 
@@ -38,22 +38,20 @@ public class HttpServerHandler {
         readinessContext.setHandler(new ReadinessHandler());
         readinessContext.setAllowNullPathInfo(true);
 
-        ContextHandlerCollection contexts = new ContextHandlerCollection(livenessContext, readinessContext);
-        server.setHandler(contexts);
-    }
+        ContextHandler metricsContext = new ContextHandler();
+        metricsContext.setContextPath("/metrics");
+        metricsContext.setHandler(new MetricsHandler());
+        metricsContext.setAllowNullPathInfo(true);
 
-    public static HttpServerHandler getInstance() {
-        if (httpServerHandler == null) {
-            httpServerHandler = new HttpServerHandler();
-        }
-        return httpServerHandler;
+        ContextHandlerCollection contexts = new ContextHandlerCollection(livenessContext, readinessContext, metricsContext);
+        server.setHandler(contexts);
     }
 
     public void startHttpServer() {
         try {
             getServer().start();
         } catch (Exception e)   {
-            LOGGER.error("Failed to start the liveness and readiness webserver", e);
+            LOGGER.error("Failed to start the webserver", e);
             throw new RuntimeException(e);
         }
     }
@@ -62,13 +60,13 @@ public class HttpServerHandler {
         try {
             getServer().stop();
         } catch (Exception e)   {
-            LOGGER.error("Failed to stop the liveness and readiness webserver", e);
+            LOGGER.error("Failed to stop the webserver", e);
             throw new RuntimeException(e);
         }
     }
 
     private Server getServer() {
-        return getInstance().server;
+        return server;
     }
 
     public static class LivenessHandler extends AbstractHandler {
@@ -88,6 +86,18 @@ public class HttpServerHandler {
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println("{\"status\": \"ok\"}");
+
+            baseRequest.setHandled(true);
+        }
+    }
+
+    public class MetricsHandler extends AbstractHandler {
+        @Override
+        public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+            response.setContentType("text/plain");
+
+            response.setStatus(HttpServletResponse.SC_OK);
+            MetricsRegistry.getInstance().getPrometheusMeterRegistry().scrape(response.getWriter());
 
             baseRequest.setHandled(true);
         }

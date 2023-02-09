@@ -4,6 +4,7 @@
  */
 package clients;
 
+import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -24,12 +25,14 @@ public class Consumer implements Client {
     private final String topicName;
     private final Properties properties;
     private final int expectedClusterSize;
+    private final String clientId;
 
     public Consumer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.consumerProperties(configuration);
         this.consumer = new KafkaConsumer<>(properties);
         this.topicName = configuration.getTopic();
         this.expectedClusterSize = configuration.getExpectedClusterSize();
+        this.clientId = configuration.getClientId();
     }
 
     private void assignPartitions() {
@@ -72,6 +75,7 @@ public class Consumer implements Client {
             LOGGER.info("All messages successfully received");
         } else {
             LOGGER.error("Failed to poll all the messages");
+            MetricsRegistry.getInstance().getConsumerErrorTotal(clientId).increment();
             future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + messageCount));
         }
 

@@ -5,6 +5,7 @@
 package clients;
 
 import com.google.gson.JsonObject;
+import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -42,8 +43,10 @@ public class Producer implements Client {
                 String generatedMessage = generateMessage(i);
                 LOGGER.info("Sending message: {} to partition: {}", generatedMessage, i);
                 this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
+                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, i).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);
+                MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, i).increment();
                 future.completeExceptionally(exception);
             }
         }
