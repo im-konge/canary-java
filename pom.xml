@@ -26,6 +26,7 @@
         <junit.jupiter.version>5.2.0</junit.jupiter.version>
         <junit.platform.runner.version>1.2.0</junit.platform.runner.version>
         <hamcrest.version>2.2</hamcrest.version>
+        <micrometer.version>1.9.5</micrometer.version>
 
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -87,6 +88,11 @@
                 <artifactId>hamcrest</artifactId>
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>${micrometer.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

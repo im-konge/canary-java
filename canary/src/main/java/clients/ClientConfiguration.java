@@ -32,6 +32,7 @@ public class ClientConfiguration {
     public static Properties consumerProperties(CanaryConfiguration configuration) {
         Properties properties = clientProperties(configuration);
 
+        properties.put(ConsumerConfig.CLIENT_ID_CONFIG, configuration.getClientId());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, configuration.getConsumerGroupId());
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
