@@ -7,7 +7,6 @@ package common.metrics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.Timer;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
@@ -27,13 +26,13 @@ public class MetricsRegistry {
     private final Map<String, Counter> topicDescribeErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> recordsProducedFailedTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> producerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Timer> recordsProducedLatency = new ConcurrentHashMap<>(1);
+//    private final Map<String, Timer> recordsProducedLatency = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> recordsConsumedTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> consumerErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> consumerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Timer> recordsConsumedLatency = new ConcurrentHashMap<>(1);
+//    private final Map<String, Timer> recordsConsumedLatency = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> connectionErrorTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Timer> connectionLatency = new ConcurrentHashMap<>(1);
+//    private final Map<String, Timer> connectionLatency = new ConcurrentHashMap<>(1);
 
     private MetricsRegistry(PrometheusMeterRegistry prometheusMeterRegistry) {
         this.prometheusMeterRegistry = prometheusMeterRegistry;
@@ -116,14 +115,14 @@ public class MetricsRegistry {
         return producerRefreshMetadataErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Timer getRecordsProducedLatency(String clientId, int partition) {
-        String metricName = METRICS_PREFIX + "records_produced_latency";
-        Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
-        String description = "Records produced latency in milliseconds";
-        String key = metricName + "," + tags;
-
-        return recordsProducedLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
-    }
+//    public Timer getRecordsProducedLatency(String clientId, int partition) {
+//        String metricName = METRICS_PREFIX + "records_produced_latency";
+//        Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
+//        String description = "Records produced latency in milliseconds";
+//        String key = metricName + "," + tags;
+//
+//        return recordsProducedLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
+//    }
 
     public Counter getRecordsConsumedTotal(String clientId, int partition) {
         String metricName = METRICS_PREFIX + "records_consumed_total";
@@ -152,14 +151,14 @@ public class MetricsRegistry {
         return consumerRefreshMetadataErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Timer getRecordsConsumedLatency(String clientId, int partition) {
-        String metricName = METRICS_PREFIX + "records_consumed_latency";
-        Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
-        String description = "Records end-to-end latency in milliseconds";
-        String key = metricName + "," + tags;
-
-        return recordsConsumedLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
-    }
+//    public Timer getRecordsConsumedLatency(String clientId, int partition) {
+//        String metricName = METRICS_PREFIX + "records_consumed_latency";
+//        Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
+//        String description = "Records end-to-end latency in milliseconds";
+//        String key = metricName + "," + tags;
+//
+//        return recordsConsumedLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
+//    }
 
     public Counter getConnectionErrorTotal(String brokerId, boolean connected) {
         String metricName = METRICS_PREFIX + "connection_error_total";
@@ -170,14 +169,14 @@ public class MetricsRegistry {
         return connectionErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Timer getConnectionLatency(String brokerId, boolean connected) {
-        String metricName = METRICS_PREFIX + "connection_latency";
-        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
-        String description = "Latency in milliseconds for established or failed connections";
-        String key = metricName + "," + tags;
-
-        return connectionLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
-    }
+//    public Timer getConnectionLatency(String brokerId, boolean connected) {
+//        String metricName = METRICS_PREFIX + "connection_latency";
+//        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
+//        String description = "Latency in milliseconds for established or failed connections";
+//        String key = metricName + "," + tags;
+//
+//        return connectionLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
+//    }
 
     private Counter counter(String metricName, String metricDescription, Tags tags) {
         return Counter
@@ -187,11 +186,11 @@ public class MetricsRegistry {
             .register(prometheusMeterRegistry);
     }
 
-    private Timer timer(String metricName, String metricDescription, Tags tags) {
-        return Timer
-            .builder(metricName)
-            .description(metricDescription)
-            .tags(tags)
-            .register(prometheusMeterRegistry);
-    }
+//    private Timer timer(String metricName, String metricDescription, Tags tags) {
+//        return Timer
+//            .builder(metricName)
+//            .description(metricDescription)
+//            .tags(tags)
+//            .register(prometheusMeterRegistry);
+//    }
 }
