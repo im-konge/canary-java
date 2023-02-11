@@ -4,20 +4,24 @@
  */
 package clients;
 
+import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.CreatePartitionsResult;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
+import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
 import org.apache.kafka.clients.admin.NewPartitions;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.KafkaFuture;
+import org.apache.kafka.common.Node;
 import org.apache.kafka.common.config.TopicConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import topic.Topic;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -102,6 +106,23 @@ public class AdminClient implements Client {
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Failed to update KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public boolean hasClusterExpectedSize() {
+        LOGGER.info("Checking Kafka cluster for expected broker count: {}", this.expectedClusterSize);
+
+        DescribeClusterResult describeClusterResult = this.adminClient.describeCluster();
+        KafkaFuture<Collection<Node>> nodeCountFuture = describeClusterResult.nodes();
+
+        try {
+            int nodeCount = nodeCountFuture.get().size();
+            return nodeCount == expectedClusterSize;
+        } catch (InterruptedException | ExecutionException e) {
+            MetricsRegistry.getInstance().getDescribeClusterErrorTotal().increment();
+            LOGGER.error("Failed to obtain cluster description: {}", e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 

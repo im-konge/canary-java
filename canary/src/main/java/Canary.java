@@ -5,11 +5,14 @@
 import clients.AdminClient;
 import clients.Consumer;
 import clients.Producer;
+import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
+import config.CanaryConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +57,9 @@ public class Canary {
         this.getConsumer().start();
         this.getProducer().start();
 
+        waitForClusterExpectedSize();
+
+        LOGGER.info("Kafka cluster have expected number of brokers, starting reconciliations");
         scheduledExecutor.scheduleAtFixedRate(this::reconcile, canaryConfiguration.getReconcileInterval(),  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
     }
 
@@ -77,5 +83,35 @@ public class Canary {
         this.getAdminClient().stop();
 
         scheduledExecutor.shutdownNow();
+    }
+
+    private void waitForClusterExpectedSize() {
+        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1, r -> new Thread(r, "canary"));
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        LOGGER.info("Waiting for Kafka cluster to have expected number of brokers");
+
+        executorService.scheduleAtFixedRate(() -> {
+            if (this.getAdminClient().hasClusterExpectedSize()) {
+                executorService.shutdownNow();
+                latch.countDown();
+            } else {
+                LOGGER.warn("Kafka cluster doesn't contains expected number of brokers");
+                MetricsRegistry.getInstance().getExpectedClusterSizeErrorTotal().increment();
+            }
+        }, 0, canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
+
+        try {
+            latch.await();
+            executorService.awaitTermination(CanaryConstants.TASK_TERMINATION_TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOGGER.error("Failed to wait for task completion due to: {}", e.getMessage());
+            e.printStackTrace();
+        } finally {
+            if (!executorService.isShutdown()) {
+                executorService.shutdownNow();
+            }
+        }
     }
 }
