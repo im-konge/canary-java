@@ -53,13 +53,14 @@ public class Canary {
     public void start() {
         LOGGER.info("Starting Canary with configuration: {}", this.getCanaryConfiguration().toString());
 
+        waitForClusterExpectedSize();
+
+        LOGGER.info("Kafka cluster have expected number of brokers, continuing with start operations");
+
         this.getAdminClient().start();
         this.getConsumer().start();
         this.getProducer().start();
 
-        waitForClusterExpectedSize();
-
-        LOGGER.info("Kafka cluster have expected number of brokers, starting reconciliations");
         scheduledExecutor.scheduleAtFixedRate(this::reconcile, canaryConfiguration.getReconcileInterval(),  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
     }
 
