@@ -4,7 +4,8 @@
  */
 package clients;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -60,10 +61,10 @@ public class Producer implements Client {
     private String generateMessage(int messageId) {
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        JsonObject message = new JsonObject();
-        message.addProperty("producerId", this.producerId);
-        message.addProperty("messageId", String.valueOf(messageId));
-        message.addProperty("timestamp", timestamp.toString());
+        ObjectNode message = JsonNodeFactory.instance.objectNode();
+        message.put("producerId", this.producerId);
+        message.put("messageId", String.valueOf(messageId));
+        message.put("timestamp", timestamp.toString());
 
         return message.toString();
     }
