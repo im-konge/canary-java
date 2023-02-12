@@ -6,6 +6,7 @@ package clients;
 
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.logging.log4j.LogManager;
@@ -61,22 +62,20 @@ public class Consumer implements Client {
         LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
-        int messageCount = 0;
-
         // poll all messages
-        for (int i = 0; i < expectedClusterSize; i++) {
-            messageCount += this.consumer.poll(Duration.ofMillis(30000)).count();
-        }
+        ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(15000));
 
-        if (messageCount == expectedClusterSize) {
+        if (receivedMessages.count() == expectedClusterSize) {
             // commit current offset
             this.consumer.commitSync();
+            receivedMessages.forEach(message -> MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment());
+
             future.complete(null);
             LOGGER.info("All messages successfully received");
         } else {
             LOGGER.error("Failed to poll all the messages");
             MetricsRegistry.getInstance().getConsumerErrorTotal(clientId).increment();
-            future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + messageCount));
+            future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + receivedMessages.count()));
         }
 
         return future;
