@@ -62,20 +62,24 @@ public class Consumer implements Client {
         LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
-        // poll all messages
-        ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(15000));
+        try {
+            // poll all messages
+            ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(15000));
 
-        if (receivedMessages.count() == expectedClusterSize) {
             // commit current offset
             this.consumer.commitSync();
-            receivedMessages.forEach(message -> MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment());
+            receivedMessages.forEach(message -> {
+                LOGGER.info("Received message with value: {} from partition: {}", message.value(), message.partition());
+                MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
+            });
 
             future.complete(null);
-            LOGGER.info("All messages successfully received");
-        } else {
-            LOGGER.error("Failed to poll all the messages");
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to poll messages due to: {}", e.getMessage());
+            e.printStackTrace();
             MetricsRegistry.getInstance().getConsumerErrorTotal(clientId).increment();
-            future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + receivedMessages.count()));
+            future.completeExceptionally(new RuntimeException("Failed to poll the messages due to: " + e.getMessage()));
         }
 
         return future;
