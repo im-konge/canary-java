@@ -98,7 +98,6 @@ public class Canary {
                 executorService.shutdownNow();
                 latch.countDown();
             } else {
-                LOGGER.warn("Kafka cluster doesn't contains expected number of brokers");
                 MetricsRegistry.getInstance().getExpectedClusterSizeErrorTotal().increment();
             }
         }, 0, canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);

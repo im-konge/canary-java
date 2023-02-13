@@ -117,6 +117,7 @@ public class AdminClient implements Client {
 
         try {
             int nodeCount = nodeCountFuture.get().size();
+            LOGGER.info("Available Kafka brokers: {} from expected {}", nodeCount, expectedClusterSize);
             return nodeCount == expectedClusterSize;
         } catch (InterruptedException | ExecutionException e) {
             MetricsRegistry.getInstance().getDescribeClusterErrorTotal().increment();
