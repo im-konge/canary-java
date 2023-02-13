@@ -22,7 +22,7 @@ public class MetricsRegistry {
     private final Map<String, Counter> clientCreationErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> expectedClusterSizeErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> topicCreationFailedTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Counter> topicDescribeClusterErrorTotal = new ConcurrentHashMap<>(1);
+    private final Map<String, Counter> describeClusterErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> topicDescribeErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> recordsProducedFailedTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> producerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
@@ -65,7 +65,7 @@ public class MetricsRegistry {
         return clientCreationErrorTotal.computeIfAbsent(metricName, func -> counter(metricName, description, null));
     }
 
-    public Counter getExpectedClusterSize() {
+    public Counter getExpectedClusterSizeErrorTotal() {
         String metricName = METRICS_PREFIX + "expected_cluster_size_error_total";
         String description = "Total number of errors while waiting for Kafka cluster having the expected size";
 
@@ -81,11 +81,11 @@ public class MetricsRegistry {
         return topicCreationFailedTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Counter getTopicDescribeClusterErrorTotal() {
-        String metricName = METRICS_PREFIX + "topic_describe_cluster_error_total";
+    public Counter getDescribeClusterErrorTotal() {
+        String metricName = METRICS_PREFIX + "describe_cluster_error_total";
         String description = "Total number of errors while describing cluster";
 
-        return topicDescribeClusterErrorTotal.computeIfAbsent(metricName, func -> counter(metricName, description, null));
+        return describeClusterErrorTotal.computeIfAbsent(metricName, func -> counter(metricName, description, null));
     }
 
     public Counter getTopicDescribeErrorTotal(String topicName) {

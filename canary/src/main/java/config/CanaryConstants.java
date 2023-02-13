@@ -56,4 +56,5 @@ public class CanaryConstants {
     public static final Duration STATUS_CHECK_INTERVAL_MS_DEFAULT = Duration.ofMillis(30000);
     public static final Duration STATUS_TIME_WINDOW_MS_DEFAULT = Duration.ofMillis(300000);
     public static final Duration DYNAMIC_CONFIG_WATCHER_INTERVAL_DEFAULT = Duration.ofMillis(30000);
+    public static final long TASK_TERMINATION_TIMEOUT = 120000;
 }
