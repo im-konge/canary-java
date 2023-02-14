@@ -64,7 +64,7 @@ public class Consumer implements Client {
 
         try {
             // poll all messages
-            ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(15000));
+            ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(100));
 
             // commit current offset
             this.consumer.commitSync();
