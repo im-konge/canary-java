@@ -6,6 +6,7 @@ package clients;
 
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.logging.log4j.LogManager;
@@ -61,22 +62,24 @@ public class Consumer implements Client {
         LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
-        int messageCount = 0;
+        try {
+            // poll all messages
+            ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(100));
 
-        // poll all messages
-        for (int i = 0; i < expectedClusterSize; i++) {
-            messageCount += this.consumer.poll(Duration.ofMillis(30000)).count();
-        }
-
-        if (messageCount == expectedClusterSize) {
             // commit current offset
             this.consumer.commitSync();
+            receivedMessages.forEach(message -> {
+                LOGGER.info("Received message with value: {} from partition: {}", message.value(), message.partition());
+                MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
+            });
+
             future.complete(null);
-            LOGGER.info("All messages successfully received");
-        } else {
-            LOGGER.error("Failed to poll all the messages");
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to poll messages due to: {}", e.getMessage());
+            e.printStackTrace();
             MetricsRegistry.getInstance().getConsumerErrorTotal(clientId).increment();
-            future.completeExceptionally(new RuntimeException("Failed to poll all the messages. Polled: " + messageCount));
+            future.completeExceptionally(new RuntimeException("Failed to poll the messages due to: " + e.getMessage()));
         }
 
         return future;
