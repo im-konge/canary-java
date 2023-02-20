@@ -25,8 +25,8 @@ public class CanaryConfiguration {
     private final long reconcileInterval;
     private final String clientId;
     private final String consumerGroupId;
-    private final float[] producerLatencyBuckets;
-    private final float[] endToEndLatencyBuckets;
+    private final double[] producerLatencyBuckets;
+    private final double[] endToEndLatencyBuckets;
     private final int expectedClusterSize;
     private final String kafkaVersion;
     private final boolean tlsEnabled;
@@ -38,7 +38,7 @@ public class CanaryConfiguration {
     private final String saslUser;
     private final String saslPassword;
     private final Duration connectionCheckInterval;
-    private final float[] connectionCheckLatencyBuckets;
+    private final double[] connectionCheckLatencyBuckets;
     private final long statusCheckInterval;
     private final long statusTimeWindow;
 
@@ -52,8 +52,8 @@ public class CanaryConfiguration {
         long reconcileInterval,
         String clientId,
         String consumerGroupId,
-        float[] producerLatencyBuckets,
-        float[] endToEndLatencyBuckets,
+        double[] producerLatencyBuckets,
+        double[] endToEndLatencyBuckets,
         int expectedClusterSize,
         String kafkaVersion,
         boolean tlsEnabled,
@@ -65,7 +65,7 @@ public class CanaryConfiguration {
         String saslUser,
         String saslPassword,
         Duration connectionCheckInterval,
-        float[] connectionCheckLatencyBuckets,
+        double[] connectionCheckLatencyBuckets,
         long statusCheckInterval,
         long statusTimeWindow
     ) {
@@ -105,8 +105,8 @@ public class CanaryConfiguration {
         long reconcileInterval = parseLongOrDefault(map.get(CanaryConstants.RECONCILE_INTERVAL_ENV), CanaryConstants.RECONCILE_INTERVAL_DEFAULT);
         String clientId = parseStringOrDefault(map.get(CanaryConstants.CLIENT_ID_ENV), CanaryConstants.CLIENT_ID_DEFAULT);
         String consumerGroupId = parseStringOrDefault(map.get(CanaryConstants.CONSUMER_GROUP_ID_ENV), CanaryConstants.CONSUMER_GROUP_ID_DEFAULT);
-        float[] producerLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV), CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
-        float[] endToEndLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV), CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
+        double[] producerLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.PRODUCER_LATENCY_BUCKETS_ENV), CanaryConstants.PRODUCER_LATENCY_BUCKETS_DEFAULT));
+        double[] endToEndLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.ENDTOEND_LATENCY_BUCKETS_ENV), CanaryConstants.ENDTOEND_LATENCY_BUCKETS_DEFAULT));
         int expectedClusterSize = parseIntOrDefault(map.get(CanaryConstants.EXPECTED_CLUSTER_SIZE_ENV), CanaryConstants.EXPECTED_CLUSTER_SIZE_DEFAULT);
         String kafkaVersion = parseStringOrDefault(map.get(CanaryConstants.KAFKA_VERSION_ENV), CanaryConstants.KAFKA_VERSION_DEFAULT);
         boolean tlsEnabled = parseBooleanOrDefault(map.get(CanaryConstants.TLS_ENABLED_ENV), CanaryConstants.TLS_ENABLED_DEFAULT);
@@ -118,7 +118,7 @@ public class CanaryConfiguration {
         String saslUser = parseStringOrDefault(map.get(CanaryConstants.SASL_USER_ENV), "");
         String saslPassword = parseStringOrDefault(map.get(CanaryConstants.SASL_PASSWORD_ENV), "");
         Duration connectionCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV), CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
-        float[] connectionCheckLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV), CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
+        double[] connectionCheckLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV), CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         long statusCheckInterval = parseLongOrDefault(map.get(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV), CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         long statusTimeWindow = parseLongOrDefault(map.get(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV), CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
 
@@ -192,11 +192,11 @@ public class CanaryConfiguration {
         return consumerGroupId;
     }
 
-    public float[] getProducerLatencyBuckets() {
+    public double[] getProducerLatencyBuckets() {
         return producerLatencyBuckets;
     }
 
-    public float[] getEndToEndLatencyBuckets() {
+    public double[] getEndToEndLatencyBuckets() {
         return endToEndLatencyBuckets;
     }
 
@@ -244,7 +244,7 @@ public class CanaryConfiguration {
         return connectionCheckInterval;
     }
 
-    public float[] getConnectionCheckLatencyBuckets() {
+    public double[] getConnectionCheckLatencyBuckets() {
         return connectionCheckLatencyBuckets;
     }
 
