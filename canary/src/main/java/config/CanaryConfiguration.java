@@ -39,8 +39,8 @@ public class CanaryConfiguration {
     private final String saslPassword;
     private final Duration connectionCheckInterval;
     private final float[] connectionCheckLatencyBuckets;
-    private final Duration statusCheckInterval;
-    private final Duration statusTimeWindow;
+    private final long statusCheckInterval;
+    private final long statusTimeWindow;
 
     @SuppressWarnings({"checkstyle:ParameterNumber"})
     public CanaryConfiguration(
@@ -66,8 +66,8 @@ public class CanaryConfiguration {
         String saslPassword,
         Duration connectionCheckInterval,
         float[] connectionCheckLatencyBuckets,
-        Duration statusCheckInterval,
-        Duration statusTimeWindow
+        long statusCheckInterval,
+        long statusTimeWindow
     ) {
         this.bootstrapServers = bootstrapServers;
         this.bootstrapBackOffMaxAttempts = bootstrapBackOffMaxAttempts;
@@ -119,8 +119,8 @@ public class CanaryConfiguration {
         String saslPassword = parseStringOrDefault(map.get(CanaryConstants.SASL_PASSWORD_ENV), "");
         Duration connectionCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV), CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
         float[] connectionCheckLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV), CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
-        Duration statusCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV), CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
-        Duration statusTimeWindow = parseDurationOrDefault(map.get(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV), CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
+        long statusCheckInterval = parseLongOrDefault(map.get(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV), CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
+        long statusTimeWindow = parseLongOrDefault(map.get(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV), CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
 
         // check if username and password is specified in case that SASL mechanism isn't empty
         if (!saslMechanism.isEmpty()) {
@@ -248,11 +248,11 @@ public class CanaryConfiguration {
         return connectionCheckLatencyBuckets;
     }
 
-    public Duration getStatusCheckInterval() {
+    public long getStatusCheckInterval() {
         return statusCheckInterval;
     }
 
-    public Duration getStatusTimeWindow() {
+    public long getStatusTimeWindow() {
         return statusTimeWindow;
     }
 

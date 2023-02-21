@@ -44,6 +44,9 @@ public class Producer implements Client {
                 String generatedMessage = generateMessage(i);
                 LOGGER.info("Sending message: {} to partition: {}", generatedMessage, i);
                 this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
+
+                // incrementing different counter for Status check
+                MessageCountHolder.getInstance().incrementProducedMessagesCount();
                 MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, i).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);

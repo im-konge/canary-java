@@ -17,7 +17,7 @@ public class Main {
         Canary canary = new Canary(configuration);
 
         LOGGER.info("Starting HTTP server");
-        HttpServerHandler httpServerHandler = new HttpServerHandler();
+        HttpServerHandler httpServerHandler = new HttpServerHandler(canary.getStatusService());
         httpServerHandler.startHttpServer();
 
         canary.start();
