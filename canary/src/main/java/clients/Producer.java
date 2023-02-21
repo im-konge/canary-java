@@ -6,7 +6,6 @@ package clients;
 
 import common.Message;
 import common.metrics.MetricsRegistry;
-import common.time.TimeUtils;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -49,7 +48,7 @@ public class Producer implements Client {
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementProducedMessagesCount();
 
-                long sendDuration = TimeUtils.getCurrentTime().getTime() - generatedMessage.timestamp().getTime();
+                long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
 
                 MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, i).increment();
                 MetricsRegistry.getInstance().getRecordsProducedLatency(producerId, i, producerLatencyBuckets).record(sendDuration);
@@ -67,7 +66,7 @@ public class Producer implements Client {
     }
 
     private Message createMessage(int messageId) {
-        return new Message(producerId, messageId, TimeUtils.getCurrentTime());
+        return new Message(producerId, messageId, System.currentTimeMillis());
     }
 
     @Override

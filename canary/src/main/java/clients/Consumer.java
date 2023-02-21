@@ -6,7 +6,6 @@ package clients;
 
 import common.Message;
 import common.metrics.MetricsRegistry;
-import common.time.TimeUtils;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -14,7 +13,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +68,7 @@ public class Consumer implements Client {
         try {
             // poll all messages
             ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(100));
+            long receivedTime = System.currentTimeMillis();
 
             // commit current offset
             this.consumer.commitSync();
@@ -82,6 +81,8 @@ public class Consumer implements Client {
 
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementConsumedMessagesCount();
+                long receiveDuration = receivedTime - receivedMessage.timestamp();
+                LOGGER.info("End to end latency for message: {} to partition: {} is {}ms", message.value(), message.partition(), receiveDuration);
                 MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
                 MetricsRegistry.getInstance().getRecordsConsumedLatency(clientId, message.partition(), consumerLatencyBuckets).record(receiveDuration);
             });
