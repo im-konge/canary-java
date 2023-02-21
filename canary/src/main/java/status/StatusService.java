@@ -65,4 +65,16 @@ public class StatusService {
 
         return Float.parseFloat(new DecimalFormat("#.##").format(percentage));
     }
+
+    public long getStatusCheckInterval() {
+        return statusCheckInterval;
+    }
+
+    public TimeWindowRing getConsumerRing() {
+        return consumerRing;
+    }
+
+    public TimeWindowRing getProducerRing() {
+        return producerRing;
+    }
 }

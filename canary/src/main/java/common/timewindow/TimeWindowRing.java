@@ -15,24 +15,20 @@ public class TimeWindowRing {
     private int head;
     private int tail;
     private int count;
-    private final long size;
-    private final long sampling;
 
     public TimeWindowRing(
-        long size,
+        long timeWindowSize,
         long sampling
     ) {
-        int bufferSize = (int) (size / sampling);
+        int bufferSize = (int) (timeWindowSize / sampling);
         if (bufferSize > CanaryConstants.MAX_TIME_WINDOW_RING_BUFFER_BUCKETS) {
             bufferSize = CanaryConstants.MAX_TIME_WINDOW_RING_BUFFER_BUCKETS;
-            LOGGER.warn("Time window {} ms too wide with {} ms sampling; resized to {} ms", size, sampling, bufferSize * sampling);
+            LOGGER.warn("Time window {} ms too wide with {} ms sampling; resized to {} ms", timeWindowSize, sampling, bufferSize * sampling);
         }
         this.buffer = new int[bufferSize];
         this.head = -1;
         this.tail = -1;
         this.count = 0;
-        this.size = bufferSize * sampling;
-        this.sampling = sampling;
     }
 
     public void putValue(int value) {
@@ -58,6 +54,10 @@ public class TimeWindowRing {
 
     public int getCount() {
         return this.count;
+    }
+
+    public int[] getBuffer() {
+        return buffer;
     }
 
     public boolean isEmpty() {
