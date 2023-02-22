@@ -40,18 +40,30 @@ public class Producer implements Client {
         CompletableFuture<Integer> future = new CompletableFuture<>();
 
         for (int i = 0; i < this.expectedClusterSize; i++) {
+            int currentMessageNum = i;
+
             try {
-                Message generatedMessage = createMessage(i);
-                LOGGER.info("Sending message: {} to partition: {}", generatedMessage, i);
+                Message generatedMessage = createMessage(currentMessageNum);
+                LOGGER.info("Sending message: {} to partition: {}", generatedMessage, currentMessageNum);
                 this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
 
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementProducedMessagesCount();
 
                 long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
+                this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage.getJsonMessage()),
+                    (metadata, exception) -> {
+                        if (exception == null) {
+                            long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
+                            MetricsRegistry.getInstance().getRecordsProducedLatency(producerId, currentMessageNum, producerLatencyBuckets).record(sendDuration);
+                        } else {
+                            LOGGER.error("Failed to send message with ID: {}", currentMessageNum);
+                            MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, currentMessageNum).increment();
+                        }
+                    }
+                );
 
-                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, i).increment();
-                MetricsRegistry.getInstance().getRecordsProducedLatency(producerId, i, producerLatencyBuckets).record(sendDuration);
+                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, currentMessageNum).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);
                 MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, i).increment();
