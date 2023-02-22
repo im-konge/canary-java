@@ -35,7 +35,7 @@ public class Canary {
         this.status = new StatusService(configuration);
 
         this.canaryConfiguration = configuration;
-        this.scheduledExecutor = Executors.newScheduledThreadPool(3, r -> new Thread(r, "canary"));
+        this.scheduledExecutor = Executors.newScheduledThreadPool(2, r -> new Thread(r, "canary"));
     }
 
     public Producer getProducer() {

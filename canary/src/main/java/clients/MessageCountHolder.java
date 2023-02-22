@@ -4,6 +4,12 @@
  */
 package clients;
 
+/**
+ * Singleton holding number of messages, which were produced and consumed
+ * `producedMessagesCount` is incremented in `sendMessages` method inside `Producer` class
+ * `consumedMessagesCount` is incremented in `receiveMessages` method inside `Consumer` class
+ * those are used in `StatusService` for calculating percentage of consumed messages
+ */
 public class MessageCountHolder {
     private int producedMessagesCount;
     private int consumedMessagesCount;
