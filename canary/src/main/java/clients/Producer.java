@@ -45,12 +45,7 @@ public class Producer implements Client {
             try {
                 Message generatedMessage = createMessage(currentMessageNum);
                 LOGGER.info("Sending message: {} to partition: {}", generatedMessage, currentMessageNum);
-                this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
 
-                // incrementing different counter for Status check
-                MessageCountHolder.getInstance().incrementProducedMessagesCount();
-
-                long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
                 this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage.getJsonMessage()),
                     (metadata, exception) -> {
                         if (exception == null) {
@@ -63,6 +58,8 @@ public class Producer implements Client {
                     }
                 );
 
+                // incrementing different counter for Status check
+                MessageCountHolder.getInstance().incrementProducedMessagesCount();
                 MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, currentMessageNum).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);

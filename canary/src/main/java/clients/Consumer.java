@@ -72,17 +72,18 @@ public class Consumer implements Client {
 
             // commit current offset
             this.consumer.commitSync();
+
             receivedMessages.forEach(message -> {
                 LOGGER.info("Received message with value: {} from partition: {}", message.value(), message.partition());
                 Message receivedMessage = Message.parseFromJson(message.value());
 
-                long receiveDuration = receivedTs.getTime() - receivedMessage.timestamp().getTime();
+                long receiveDuration = receivedTime - receivedMessage.timestamp();
 
+                LOGGER.info("End to end latency for message: {} to partition: {} is {}ms", message.value(), message.partition(), receiveDuration);
 
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementConsumedMessagesCount();
-                long receiveDuration = receivedTime - receivedMessage.timestamp();
-                LOGGER.info("End to end latency for message: {} to partition: {} is {}ms", message.value(), message.partition(), receiveDuration);
+
                 MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
                 MetricsRegistry.getInstance().getRecordsConsumedLatency(clientId, message.partition(), consumerLatencyBuckets).record(receiveDuration);
             });
