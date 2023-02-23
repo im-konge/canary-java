@@ -40,7 +40,7 @@ public class StatusService {
         float calculatedPercentage = calculateConsumedPercentage();
 
         if (calculatedPercentage == -1) {
-            LOGGER.error("No data samples available in the time window ring");
+            LOGGER.warn("No data samples available in the time window ring");
         }
 
         return new ConsumingStatus(

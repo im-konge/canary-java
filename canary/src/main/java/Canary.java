@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 public class Canary {
 
     private static final Logger LOGGER = LogManager.getLogger(Canary.class);
+    private static final int THREAD_POOL_SIZE = 2;
+
     private Producer producer;
     private Consumer consumer;
     private AdminClient adminClient;
@@ -35,7 +37,7 @@ public class Canary {
         this.status = new StatusService(configuration);
 
         this.canaryConfiguration = configuration;
-        this.scheduledExecutor = Executors.newScheduledThreadPool(2, r -> new Thread(r, "canary"));
+        this.scheduledExecutor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE, r -> new Thread(r, "canary"));
     }
 
     public Producer getProducer() {
