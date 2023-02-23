@@ -4,6 +4,7 @@
  */
 package clients;
 
+import common.Message;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -27,6 +28,7 @@ public class Consumer implements Client {
     private final Properties properties;
     private final int expectedClusterSize;
     private final String clientId;
+    private final double[] consumerLatencyBuckets;
 
     public Consumer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.consumerProperties(configuration);
@@ -34,6 +36,7 @@ public class Consumer implements Client {
         this.topicName = configuration.getTopic();
         this.expectedClusterSize = configuration.getExpectedClusterSize();
         this.clientId = configuration.getClientId();
+        this.consumerLatencyBuckets = configuration.getEndToEndLatencyBuckets();
     }
 
     private void assignPartitions() {
@@ -65,15 +68,24 @@ public class Consumer implements Client {
         try {
             // poll all messages
             ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(100));
+            long receivedTime = System.currentTimeMillis();
 
             // commit current offset
             this.consumer.commitSync();
+
             receivedMessages.forEach(message -> {
                 LOGGER.info("Received message with value: {} from partition: {}", message.value(), message.partition());
+                Message receivedMessage = Message.parseFromJson(message.value());
+
+                long receiveDuration = receivedTime - receivedMessage.timestamp();
+
+                LOGGER.info("End to end latency for message: {} to partition: {} is {}ms", message.value(), message.partition(), receiveDuration);
 
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementConsumedMessagesCount();
+
                 MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
+                MetricsRegistry.getInstance().getRecordsConsumedLatency(clientId, message.partition(), consumerLatencyBuckets).record(receiveDuration);
             });
 
             future.complete(null);

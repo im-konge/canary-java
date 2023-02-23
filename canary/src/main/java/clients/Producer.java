@@ -4,8 +4,7 @@
  */
 package clients;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import common.Message;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -13,7 +12,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Timestamp;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -26,6 +24,7 @@ public class Producer implements Client {
     private final String producerId;
     private final Properties properties;
     private final int expectedClusterSize;
+    private final double[] producerLatencyBuckets;
 
     public Producer(CanaryConfiguration configuration) {
         this.properties = ClientConfiguration.producerProperties(configuration);
@@ -33,6 +32,7 @@ public class Producer implements Client {
         this.topicName = configuration.getTopic();
         this.producerId = configuration.getClientId();
         this.expectedClusterSize = configuration.getExpectedClusterSize();
+        this.producerLatencyBuckets = configuration.getProducerLatencyBuckets();
     }
 
     public CompletionStage<Integer> sendMessages() {
@@ -40,14 +40,27 @@ public class Producer implements Client {
         CompletableFuture<Integer> future = new CompletableFuture<>();
 
         for (int i = 0; i < this.expectedClusterSize; i++) {
+            int currentMessageNum = i;
+
             try {
-                String generatedMessage = generateMessage(i);
-                LOGGER.info("Sending message: {} to partition: {}", generatedMessage, i);
-                this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage)).get();
+                Message generatedMessage = createMessage(currentMessageNum);
+                LOGGER.info("Sending message: {} to partition: {}", generatedMessage, currentMessageNum);
+
+                this.producer.send(new ProducerRecord<>(this.topicName, i, null, null, generatedMessage.getJsonMessage()),
+                    (metadata, exception) -> {
+                        if (exception == null) {
+                            long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
+                            MetricsRegistry.getInstance().getRecordsProducedLatency(producerId, currentMessageNum, producerLatencyBuckets).record(sendDuration);
+                        } else {
+                            LOGGER.error("Failed to send message with ID: {}", currentMessageNum);
+                            MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, currentMessageNum).increment();
+                        }
+                    }
+                );
 
                 // incrementing different counter for Status check
                 MessageCountHolder.getInstance().incrementProducedMessagesCount();
-                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, i).increment();
+                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, currentMessageNum).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);
                 MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, i).increment();
@@ -61,15 +74,8 @@ public class Producer implements Client {
         return future;
     }
 
-    private String generateMessage(int messageId) {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-
-        ObjectNode message = JsonNodeFactory.instance.objectNode();
-        message.put("producerId", this.producerId);
-        message.put("messageId", String.valueOf(messageId));
-        message.put("timestamp", timestamp.toString());
-
-        return message.toString();
+    private Message createMessage(int messageId) {
+        return new Message(producerId, messageId, System.currentTimeMillis());
     }
 
     @Override

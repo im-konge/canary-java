@@ -39,16 +39,15 @@ public class CanaryConfigurationUtils {
         return topicConfigMap;
     }
 
-    public static float[] createLatencyBuckets(String latencyBuckets) {
+    public static double[] createLatencyBuckets(String latencyBuckets) {
         String[] values = latencyBuckets.split(",");
-        float[] latencyBucketsArr = new float[values.length];
+        double[] latencyBucketsArr = new double[values.length];
 
-        // TODO: maybe some more intelligent way how to do this
         int index = 0;
         for (String value : values) {
             // the empty value should not be parsed
             if (value.length() != 0) {
-                latencyBucketsArr[index] = Float.parseFloat(value);
+                latencyBucketsArr[index] = Double.parseDouble(value);
                 index++;
             }
         }
