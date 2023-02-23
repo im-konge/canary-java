@@ -10,6 +10,7 @@ import config.CanaryConfiguration;
 import config.CanaryConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import status.StatusService;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -20,18 +21,23 @@ import java.util.concurrent.TimeUnit;
 public class Canary {
 
     private static final Logger LOGGER = LogManager.getLogger(Canary.class);
+    private static final int THREAD_POOL_SIZE = 2;
+
     private Producer producer;
     private Consumer consumer;
     private AdminClient adminClient;
     private CanaryConfiguration canaryConfiguration;
+    private StatusService status;
     private final ScheduledExecutorService scheduledExecutor;
 
     Canary(CanaryConfiguration configuration) {
         this.producer = new Producer(configuration);
         this.consumer = new Consumer(configuration);
         this.adminClient = new AdminClient(configuration);
+        this.status = new StatusService(configuration);
+
         this.canaryConfiguration = configuration;
-        this.scheduledExecutor = Executors.newScheduledThreadPool(1, r -> new Thread(r, "canary"));
+        this.scheduledExecutor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE, r -> new Thread(r, "canary"));
     }
 
     public Producer getProducer() {
@@ -50,6 +56,10 @@ public class Canary {
         return this.canaryConfiguration;
     }
 
+    public StatusService getStatusService() {
+        return this.status;
+    }
+
     public void start() {
         LOGGER.info("Starting Canary with configuration: {}", this.getCanaryConfiguration().toString());
 
@@ -61,7 +71,8 @@ public class Canary {
         this.getConsumer().start();
         this.getProducer().start();
 
-        scheduledExecutor.scheduleAtFixedRate(this::reconcile, canaryConfiguration.getReconcileInterval(),  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(this::reconcile, 0,  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(this.getStatusService()::statusCheck, 0,  canaryConfiguration.getStatusCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
     private void reconcile() {

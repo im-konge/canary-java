@@ -70,6 +70,9 @@ public class Consumer implements Client {
             this.consumer.commitSync();
             receivedMessages.forEach(message -> {
                 LOGGER.info("Received message with value: {} from partition: {}", message.value(), message.partition());
+
+                // incrementing different counter for Status check
+                MessageCountHolder.getInstance().incrementConsumedMessagesCount();
                 MetricsRegistry.getInstance().getRecordsConsumedTotal(clientId, message.partition()).increment();
             });
 
