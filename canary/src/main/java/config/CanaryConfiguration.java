@@ -37,7 +37,7 @@ public class CanaryConfiguration {
     private final String saslMechanism;
     private final String saslUser;
     private final String saslPassword;
-    private final Duration connectionCheckInterval;
+    private final long connectionCheckInterval;
     private final double[] connectionCheckLatencyBuckets;
     private final long statusCheckInterval;
     private final long statusTimeWindow;
@@ -64,7 +64,7 @@ public class CanaryConfiguration {
         String saslMechanism,
         String saslUser,
         String saslPassword,
-        Duration connectionCheckInterval,
+        long connectionCheckInterval,
         double[] connectionCheckLatencyBuckets,
         long statusCheckInterval,
         long statusTimeWindow
@@ -117,7 +117,7 @@ public class CanaryConfiguration {
         String saslMechanism = parseStringOrDefault(map.get(CanaryConstants.SASL_MECHANISM_ENV), "");
         String saslUser = parseStringOrDefault(map.get(CanaryConstants.SASL_USER_ENV), "");
         String saslPassword = parseStringOrDefault(map.get(CanaryConstants.SASL_PASSWORD_ENV), "");
-        Duration connectionCheckInterval = parseDurationOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV), CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
+        long connectionCheckInterval = parseLongOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV), CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT);
         double[] connectionCheckLatencyBuckets = createLatencyBuckets(parseStringOrDefault(map.get(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV), CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT));
         long statusCheckInterval = parseLongOrDefault(map.get(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV), CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT);
         long statusTimeWindow = parseLongOrDefault(map.get(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV), CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT);
@@ -240,7 +240,7 @@ public class CanaryConfiguration {
         return saslPassword;
     }
 
-    public Duration getConnectionCheckInterval() {
+    public long getConnectionCheckInterval() {
         return connectionCheckInterval;
     }
 

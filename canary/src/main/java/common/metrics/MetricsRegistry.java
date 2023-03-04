@@ -33,7 +33,7 @@ public class MetricsRegistry {
     private final Map<String, Counter> consumerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, DistributionSummary> recordsConsumedLatency = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> connectionErrorTotal = new ConcurrentHashMap<>(1);
-//    private final Map<String, Timer> connectionLatency = new ConcurrentHashMap<>(1);
+    private final Map<String, DistributionSummary> connectionLatency = new ConcurrentHashMap<>(1);
 
     private MetricsRegistry(PrometheusMeterRegistry prometheusMeterRegistry) {
         this.prometheusMeterRegistry = prometheusMeterRegistry;
@@ -170,14 +170,14 @@ public class MetricsRegistry {
         return connectionErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-//    public Timer getConnectionLatency(String brokerId, boolean connected) {
-//        String metricName = METRICS_PREFIX + "connection_latency";
-//        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
-//        String description = "Latency in milliseconds for established or failed connections";
-//        String key = metricName + "," + tags;
-//
-//        return connectionLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
-//    }
+    public DistributionSummary getConnectionLatency(String brokerId, boolean connected, double[] buckets) {
+        String metricName = METRICS_PREFIX + "connection_latency";
+        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
+        String description = "Latency in milliseconds for established or failed connections";
+        String key = metricName + "," + tags;
+
+        return connectionLatency.computeIfAbsent(key, func -> histogram(metricName, description, tags, buckets));
+    }
 
     private Counter counter(String metricName, String metricDescription, Tags tags) {
         return Counter

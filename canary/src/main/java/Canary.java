@@ -8,6 +8,7 @@ import clients.Producer;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import config.CanaryConstants;
+import connection.ConnectionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import status.StatusService;
@@ -21,13 +22,14 @@ import java.util.concurrent.TimeUnit;
 public class Canary {
 
     private static final Logger LOGGER = LogManager.getLogger(Canary.class);
-    private static final int THREAD_POOL_SIZE = 2;
+    private static final int THREAD_POOL_SIZE = 3;
 
     private Producer producer;
     private Consumer consumer;
     private AdminClient adminClient;
     private CanaryConfiguration canaryConfiguration;
     private StatusService status;
+    private ConnectionService connection;
     private final ScheduledExecutorService scheduledExecutor;
 
     Canary(CanaryConfiguration configuration) {
@@ -35,6 +37,7 @@ public class Canary {
         this.consumer = new Consumer(configuration);
         this.adminClient = new AdminClient(configuration);
         this.status = new StatusService(configuration);
+        this.connection = new ConnectionService(configuration, adminClient);
 
         this.canaryConfiguration = configuration;
         this.scheduledExecutor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE, r -> new Thread(r, "canary"));
@@ -60,6 +63,10 @@ public class Canary {
         return this.status;
     }
 
+    public ConnectionService getConnectionService() {
+        return this.connection;
+    }
+
     public void start() {
         LOGGER.info("Starting Canary with configuration: {}", this.getCanaryConfiguration().toString());
 
@@ -73,6 +80,7 @@ public class Canary {
 
         scheduledExecutor.scheduleAtFixedRate(this::reconcile, 0,  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
         scheduledExecutor.scheduleAtFixedRate(this.getStatusService()::statusCheck, 0,  canaryConfiguration.getStatusCheckInterval(), TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(this.getConnectionService()::checkConnection, 0,  canaryConfiguration.getStatusCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
     private void reconcile() {

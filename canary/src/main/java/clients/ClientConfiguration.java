@@ -42,11 +42,7 @@ public class ClientConfiguration {
         return properties;
     }
 
-    public static Properties adminProperties(CanaryConfiguration configuration) {
-        return clientProperties(configuration);
-    }
-
-    private static Properties clientProperties(CanaryConfiguration configuration) {
+    public static Properties clientProperties(CanaryConfiguration configuration) {
         Properties properties = new Properties();
 
         properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, configuration.getBootstrapServers());

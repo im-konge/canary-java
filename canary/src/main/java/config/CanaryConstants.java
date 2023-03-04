@@ -51,8 +51,9 @@ public class CanaryConstants {
     public static final String KAFKA_VERSION_DEFAULT = "3.3.1";
     public static final boolean TLS_ENABLED_DEFAULT = false;
     public static final boolean TLS_INSECURE_SKIP_VERIFY_DEFAULT = false;
-    public static final Duration CONNECTION_CHECK_INTERVAL_MS_DEFAULT = Duration.ofMillis(120000);
+    public static final long CONNECTION_CHECK_INTERVAL_MS_DEFAULT = 120000;
     public static final String CONNECTION_CHECK_LATENCY_BUCKETS_DEFAULT = "100,200,400,800,1600";
+    public static final int CONNECTION_TIMEOUT_MS_DEFAULT = 30000;
     public static final long STATUS_CHECK_INTERVAL_MS_DEFAULT = 30000;
     public static final long STATUS_TIME_WINDOW_MS_DEFAULT = 300000;
     public static final Duration DYNAMIC_CONFIG_WATCHER_INTERVAL_DEFAULT = Duration.ofMillis(30000);

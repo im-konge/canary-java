@@ -36,7 +36,7 @@ public class AdminClient implements Client {
     private final int expectedClusterSize;
 
     public AdminClient(CanaryConfiguration configuration) {
-        this.properties = ClientConfiguration.adminProperties(configuration);
+        this.properties = ClientConfiguration.clientProperties(configuration);
         this.adminClient = Admin.create(properties);
         this.topic = new Topic(configuration.getTopic(), configuration.getTopicConfig());
         this.expectedClusterSize = configuration.getExpectedClusterSize();
@@ -124,6 +124,16 @@ public class AdminClient implements Client {
             LOGGER.error("Failed to obtain cluster description: {}", e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public Collection<Node> listBrokers() {
+        try {
+            return adminClient.describeCluster().nodes().get();
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.error("Failed to obtain list of brokers: {}", e.getMessage());
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 
