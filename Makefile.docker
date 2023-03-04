@@ -1,0 +1,15 @@
+DOCKER_REGISTRY ?= quay.io
+DOCKER_TAG ?= latest
+DOCKER_ORG ?= strimzi
+
+docker_build:
+	echo "Building Docker image ..."
+	docker build docker-image/. --build-arg version=${VERSION} -t ${DOCKER_REGISTRY}/strimzi/${PROJECT_NAME}:latest
+
+docker_tag:
+	echo "Tagging Docker image ..."
+	docker tag ${DOCKER_REGISTRY}/strimzi/${PROJECT_NAME}:latest ${DOCKER_REGISTRY}/${DOCKER_ORG}/${PROJECT_NAME}:${DOCKER_TAG}
+
+docker_push:
+	echo "Pushing Docker image ..."
+	docker push ${DOCKER_REGISTRY}/${DOCKER_ORG}/${PROJECT_NAME}:${DOCKER_TAG}
