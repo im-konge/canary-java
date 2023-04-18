@@ -8,6 +8,7 @@ import clients.Producer;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
 import config.CanaryConstants;
+import org.apache.kafka.common.KafkaException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import status.StatusService;
@@ -31,9 +32,24 @@ public class Canary {
     private final ScheduledExecutorService scheduledExecutor;
 
     Canary(CanaryConfiguration configuration) {
-        this.producer = new Producer(configuration);
-        this.consumer = new Consumer(configuration);
-        this.adminClient = new AdminClient(configuration);
+        Producer producer;
+        Consumer consumer;
+        AdminClient adminClient;
+
+        try {
+            producer = new Producer(configuration);
+            consumer = new Consumer(configuration);
+            adminClient = new AdminClient(configuration);
+        } catch (KafkaException e) {
+            MetricsRegistry.getInstance().getClientCreationErrorTotal().increment();
+            LOGGER.error("Failed to create Kafka client: {}", e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        this.producer = producer;
+        this.consumer = consumer;
+        this.adminClient = adminClient;
         this.status = new StatusService(configuration);
 
         this.canaryConfiguration = configuration;

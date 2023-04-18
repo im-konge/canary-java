@@ -6,6 +6,6 @@ package clients;
 
 public interface Client {
 
-    public void start();
-    public void stop();
+    void start();
+    void stop();
 }

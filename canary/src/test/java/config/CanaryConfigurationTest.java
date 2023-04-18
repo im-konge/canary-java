@@ -23,11 +23,8 @@ public class CanaryConfigurationTest {
         CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(Collections.emptyMap());
         float[] defaultProducerLatencyBuckets = {2.0F, 5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F};
         float[] defaultE2ELatencyBuckets = {5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F, 800.0F};
-        float[] defaultConnectionCheckLatency = {100.0F, 200.0F, 400.0F, 800.0F, 1600.0F};
 
         assertThat(canaryConfiguration.getBootstrapServers(), is(CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT));
-        assertThat(canaryConfiguration.getBootstrapBackOffMaxAttempts(), is(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_DEFAULT));
-        assertThat(canaryConfiguration.getBootstrapBackOffScale(), is(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_DEFAULT));
         assertThat(canaryConfiguration.getTopic(), is(CanaryConstants.TOPIC_DEFAULT));
         assertThat(canaryConfiguration.getTopicConfig(), nullValue());
         assertThat(canaryConfiguration.getReconcileInterval(), is(CanaryConstants.RECONCILE_INTERVAL_DEFAULT));
@@ -40,12 +37,9 @@ public class CanaryConfigurationTest {
         assertThat(canaryConfiguration.getTlsCaCert(), is(""));
         assertThat(canaryConfiguration.getTlsClientCert(), is(""));
         assertThat(canaryConfiguration.getTlsClientKey(), is(""));
-        assertThat(canaryConfiguration.isTlsInsecureSkipVerify(), is(CanaryConstants.TLS_INSECURE_SKIP_VERIFY_DEFAULT));
         assertThat(canaryConfiguration.getSaslMechanism(), is(""));
         assertThat(canaryConfiguration.getSaslUser(), is(""));
         assertThat(canaryConfiguration.getSaslPassword(), is(""));
-        assertThat(canaryConfiguration.getConnectionCheckInterval(), is(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_DEFAULT));
-        assertThat(canaryConfiguration.getConnectionCheckLatencyBuckets(), is(defaultConnectionCheckLatency));
         assertThat(canaryConfiguration.getStatusCheckInterval(), is(CanaryConstants.STATUS_CHECK_INTERVAL_MS_DEFAULT));
         assertThat(canaryConfiguration.getStatusTimeWindow(), is(CanaryConstants.STATUS_TIME_WINDOW_MS_DEFAULT));
     }
@@ -94,8 +88,6 @@ public class CanaryConfigurationTest {
 
         Map<String, String> testConfigurationMap = new HashMap<>();
         testConfigurationMap.put(CanaryConstants.BOOTSTRAP_SERVERS_ENV, bootstrapServer);
-        testConfigurationMap.put(CanaryConstants.BOOTSTRAP_BACKOFF_MAX_ATTEMPTS_ENV, String.valueOf(bootstrapBackoffMax));
-        testConfigurationMap.put(CanaryConstants.BOOTSTRAP_BACKOFF_SCALE_ENV, bootstrapBackOffScaleString);
         testConfigurationMap.put(CanaryConstants.TOPIC_ENV, topicName);
         testConfigurationMap.put(CanaryConstants.RECONCILE_INTERVAL_ENV, String.valueOf(reconciliationInterval));
         testConfigurationMap.put(CanaryConstants.CLIENT_ID_ENV, clientId);
@@ -110,16 +102,12 @@ public class CanaryConfigurationTest {
         testConfigurationMap.put(CanaryConstants.SASL_MECHANISM_ENV, saslMechanism);
         testConfigurationMap.put(CanaryConstants.SASL_USER_ENV, saslUser);
         testConfigurationMap.put(CanaryConstants.SASL_PASSWORD_ENV, saslPassword);
-        testConfigurationMap.put(CanaryConstants.CONNECTION_CHECK_INTERVAL_MS_ENV, connectionCheckIntervalString);
-        testConfigurationMap.put(CanaryConstants.CONNECTION_CHECK_LATENCY_BUCKETS_ENV, connectionCheckLatencyBuckets);
         testConfigurationMap.put(CanaryConstants.STATUS_CHECK_INTERVAL_MS_ENV, statusCheckIntervalString);
         testConfigurationMap.put(CanaryConstants.STATUS_TIME_WINDOW_MS_ENV, statusTimeWindowString);
 
         CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(testConfigurationMap);
 
         assertThat(canaryConfiguration.getBootstrapServers(), is(bootstrapServer));
-        assertThat(canaryConfiguration.getBootstrapBackOffMaxAttempts(), is(bootstrapBackoffMax));
-        assertThat(canaryConfiguration.getBootstrapBackOffScale(), is(bootstrapBackOffScale));
         assertThat(canaryConfiguration.getTopic(), is(topicName));
         assertThat(canaryConfiguration.getReconcileInterval(), is(reconciliationInterval));
         assertThat(canaryConfiguration.getClientId(), is(clientId));
@@ -134,8 +122,6 @@ public class CanaryConfigurationTest {
         assertThat(canaryConfiguration.getSaslMechanism(), is(saslMechanism));
         assertThat(canaryConfiguration.getSaslUser(), is(saslUser));
         assertThat(canaryConfiguration.getSaslPassword(), is(saslPassword));
-        assertThat(canaryConfiguration.getConnectionCheckInterval(), is(connectionCheckInterval));
-        assertThat(canaryConfiguration.getConnectionCheckLatencyBuckets(), is(connectionCheckLatencyBucketsFloat));
         assertThat(canaryConfiguration.getStatusCheckInterval(), is(statusCheckInterval));
         assertThat(canaryConfiguration.getStatusTimeWindow(), is(statusTimeWindow));
     }

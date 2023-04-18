@@ -26,14 +26,10 @@ public class MetricsRegistry {
     private final Map<String, Counter> describeClusterErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> topicDescribeErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> recordsProducedFailedTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Counter> producerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, DistributionSummary> recordsProducedLatency = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> recordsConsumedTotal = new ConcurrentHashMap<>(1);
     private final Map<String, Counter> consumerErrorTotal = new ConcurrentHashMap<>(1);
-    private final Map<String, Counter> consumerRefreshMetadataErrorTotal = new ConcurrentHashMap<>(1);
     private final Map<String, DistributionSummary> recordsConsumedLatency = new ConcurrentHashMap<>(1);
-    private final Map<String, Counter> connectionErrorTotal = new ConcurrentHashMap<>(1);
-//    private final Map<String, Timer> connectionLatency = new ConcurrentHashMap<>(1);
 
     private MetricsRegistry(PrometheusMeterRegistry prometheusMeterRegistry) {
         this.prometheusMeterRegistry = prometheusMeterRegistry;
@@ -107,15 +103,6 @@ public class MetricsRegistry {
         return recordsProducedFailedTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Counter getProducerRefreshMetadataErrorTotal(String clientId) {
-        String metricName = METRICS_PREFIX + "producer_refresh_metadata_error_total";
-        Tags tags = Tags.of(Tag.of("clientid", clientId));
-        String description = "Total number of errors while refreshing producer metadata";
-        String key = metricName + "," + tags;
-
-        return producerRefreshMetadataErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
-    }
-
     public DistributionSummary getRecordsProducedLatency(String clientId, int partition, double[] buckets) {
         String metricName = METRICS_PREFIX + "records_produced_latency";
         Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
@@ -143,15 +130,6 @@ public class MetricsRegistry {
         return consumerErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
     }
 
-    public Counter getConsumerRefreshMetadataErrorTotal(String clientId) {
-        String metricName = METRICS_PREFIX + "consumer_refresh_metadata_error_total";
-        Tags tags = Tags.of(Tag.of("clientid", clientId));
-        String description = "Total number of errors while refreshing consumer metadata";
-        String key = metricName + "," + tags;
-
-        return consumerRefreshMetadataErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
-    }
-
     public DistributionSummary getRecordsConsumedLatency(String clientId, int partition, double[] buckets) {
         String metricName = METRICS_PREFIX + "records_consumed_latency";
         Tags tags = Tags.of(Tag.of("clientid", clientId), Tag.of("partition", String.valueOf(partition)));
@@ -160,24 +138,6 @@ public class MetricsRegistry {
 
         return recordsConsumedLatency.computeIfAbsent(key, func -> histogram(metricName, description, tags, buckets));
     }
-
-    public Counter getConnectionErrorTotal(String brokerId, boolean connected) {
-        String metricName = METRICS_PREFIX + "connection_error_total";
-        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
-        String description = "Total number of errors while checking the connection to Kafka brokers";
-        String key = metricName + "," + tags;
-
-        return connectionErrorTotal.computeIfAbsent(key, func -> counter(metricName, description, tags));
-    }
-
-//    public Timer getConnectionLatency(String brokerId, boolean connected) {
-//        String metricName = METRICS_PREFIX + "connection_latency";
-//        Tags tags = Tags.of(Tag.of("brokerid", brokerId), Tag.of("connected", String.valueOf(connected)));
-//        String description = "Latency in milliseconds for established or failed connections";
-//        String key = metricName + "," + tags;
-//
-//        return connectionLatency.computeIfAbsent(key, func -> timer(metricName, description, tags));
-//    }
 
     private Counter counter(String metricName, String metricDescription, Tags tags) {
         return Counter
