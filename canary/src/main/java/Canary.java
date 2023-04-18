@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import status.StatusService;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,6 +29,8 @@ public class Canary {
     private CanaryConfiguration canaryConfiguration;
     private StatusService status;
     private final ScheduledExecutorService scheduledExecutor;
+    private final ConsumerInfiniteRunnable consumerInfiniteRunnable;
+    private final Thread consumerThread;
 
     Canary(CanaryConfiguration configuration) {
         Producer producer;
@@ -54,6 +55,8 @@ public class Canary {
 
         this.canaryConfiguration = configuration;
         this.scheduledExecutor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE, r -> new Thread(r, "canary"));
+        this.consumerInfiniteRunnable = new ConsumerInfiniteRunnable(this.consumer);
+        this.consumerThread = new Thread(this.consumerInfiniteRunnable, "canary-consumer");
     }
 
     public Producer getProducer() {
@@ -76,6 +79,14 @@ public class Canary {
         return this.status;
     }
 
+    public Thread getConsumerThread() {
+        return consumerThread;
+    }
+
+    public ConsumerInfiniteRunnable getConsumerInfiniteRunnable() {
+        return consumerInfiniteRunnable;
+    }
+
     public void start() {
         LOGGER.info("Starting Canary with configuration: {}", this.getCanaryConfiguration().toString());
 
@@ -87,16 +98,14 @@ public class Canary {
         this.getConsumer().start();
         this.getProducer().start();
 
+        this.getConsumerThread().start();
         scheduledExecutor.scheduleAtFixedRate(this::reconcile, 0,  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
         scheduledExecutor.scheduleAtFixedRate(this.getStatusService()::statusCheck, 0,  canaryConfiguration.getStatusCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
     private void reconcile() {
         try {
-            CompletableFuture.allOf(
-                this.getProducer().sendMessages().toCompletableFuture(),
-                this.getConsumer().receiveMessages().toCompletableFuture()
-            ).get();
+            this.getProducer().sendMessages().toCompletableFuture().get();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -106,11 +115,23 @@ public class Canary {
     public void stop() {
         LOGGER.info("Shutting down Canary");
 
+        this.stopConsumerThread();
         this.getProducer().stop();
         this.getConsumer().stop();
         this.getAdminClient().stop();
 
         scheduledExecutor.shutdownNow();
+    }
+
+    private void stopConsumerThread() {
+        try {
+            this.getConsumerInfiniteRunnable().stop();
+            this.getConsumerThread().join();
+        } catch (InterruptedException e) {
+            LOGGER.error("Failed to close the Consumer thread: {}", e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     private void waitForClusterExpectedSize() {
@@ -138,6 +159,25 @@ public class Canary {
         } finally {
             if (!executorService.isShutdown()) {
                 executorService.shutdownNow();
+            }
+        }
+    }
+
+    public static class ConsumerInfiniteRunnable implements Runnable {
+        private volatile boolean running = true;
+        private final Consumer consumer;
+
+        ConsumerInfiniteRunnable(Consumer consumer) {
+            this.consumer = consumer;
+        }
+
+        public void stop() {
+            running = false;
+        }
+
+        public void run() {
+            while (running) {
+                this.consumer.receiveMessages();
             }
         }
     }

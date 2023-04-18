@@ -62,7 +62,6 @@ public class Consumer implements Client {
     }
 
     public CompletionStage<Void> receiveMessages() {
-        LOGGER.info("Receiving messages from KafkaTopic: {}", topicName);
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         try {
