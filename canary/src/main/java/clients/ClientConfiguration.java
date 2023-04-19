@@ -26,6 +26,8 @@ public class ClientConfiguration {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.ACKS_CONFIG, "all");
+        properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, String.valueOf(configuration.getReconcileInterval()));
+        properties.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, String.valueOf(configuration.getReconcileInterval()));
 
         return properties;
     }
