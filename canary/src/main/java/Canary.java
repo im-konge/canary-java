@@ -99,17 +99,8 @@ public class Canary {
         this.getProducer().start();
 
         this.getConsumerThread().start();
-        scheduledExecutor.scheduleAtFixedRate(this::reconcile, 0,  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(this.getProducer()::sendMessages, 0,  canaryConfiguration.getReconcileInterval(), TimeUnit.MILLISECONDS);
         scheduledExecutor.scheduleAtFixedRate(this.getStatusService()::statusCheck, 0,  canaryConfiguration.getStatusCheckInterval(), TimeUnit.MILLISECONDS);
-    }
-
-    private void reconcile() {
-        try {
-            this.getProducer().sendMessages().toCompletableFuture().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 
     public void stop() {

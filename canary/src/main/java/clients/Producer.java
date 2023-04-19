@@ -35,9 +35,8 @@ public class Producer implements Client {
         this.producerLatencyBuckets = configuration.getProducerLatencyBuckets();
     }
 
-    public CompletionStage<Integer> sendMessages() {
+    public void sendMessages() {
         LOGGER.info("Sending messages to KafkaTopic: {}", topicName);
-        CompletableFuture<Integer> future = new CompletableFuture<>();
 
         for (int i = 0; i < this.expectedClusterSize; i++) {
             int currentMessageNum = i;
@@ -50,28 +49,25 @@ public class Producer implements Client {
                     (metadata, exception) -> {
                         if (exception == null) {
                             long sendDuration = System.currentTimeMillis() - generatedMessage.timestamp();
+
+                            // incrementing different counter for Status check
+                            MessageCountHolder.getInstance().incrementProducedMessagesCount();
+                            MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, currentMessageNum).increment();
                             MetricsRegistry.getInstance().getRecordsProducedLatency(producerId, currentMessageNum, producerLatencyBuckets).record(sendDuration);
+
+                            LOGGER.info("Message: {} successfully sent", generatedMessage);
                         } else {
                             LOGGER.error("Failed to send message with ID: {}", currentMessageNum);
                             MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, currentMessageNum).increment();
                         }
                     }
                 );
-
-                // incrementing different counter for Status check
-                MessageCountHolder.getInstance().incrementProducedMessagesCount();
-                MetricsRegistry.getInstance().getRecordsProducedTotal(producerId, currentMessageNum).increment();
             } catch (Exception exception) {
                 LOGGER.error("Failed to send message with ID: {}", i);
                 MetricsRegistry.getInstance().getRecordsProducedFailedTotal(producerId, i).increment();
-                future.completeExceptionally(exception);
+                exception.printStackTrace();
             }
         }
-
-        future.complete(expectedClusterSize);
-        LOGGER.info("All messages successfully sent");
-
-        return future;
     }
 
     private Message createMessage(int messageId) {

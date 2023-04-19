@@ -7,6 +7,7 @@ package clients;
 import common.Message;
 import common.metrics.MetricsRegistry;
 import config.CanaryConfiguration;
+import config.CanaryConstants;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 public class Consumer implements Client {
 
@@ -61,9 +63,7 @@ public class Consumer implements Client {
         this.consumer.unsubscribe();
     }
 
-    public CompletionStage<Void> receiveMessages() {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
+    public void receiveMessages() {
         try {
             // poll all messages
             ConsumerRecords<String, String> receivedMessages = this.consumer.poll(Duration.ofMillis(100));
@@ -87,16 +87,11 @@ public class Consumer implements Client {
                 MetricsRegistry.getInstance().getRecordsConsumedLatency(clientId, message.partition(), consumerLatencyBuckets).record(receiveDuration);
             });
 
-            future.complete(null);
-
         } catch (Exception e) {
             LOGGER.error("Failed to poll messages due to: {}", e.getMessage());
-            e.printStackTrace();
             MetricsRegistry.getInstance().getConsumerErrorTotal(clientId).increment();
-            future.completeExceptionally(new RuntimeException("Failed to poll the messages due to: " + e.getMessage()));
+            e.printStackTrace();
         }
-
-        return future;
     }
 
     @Override
