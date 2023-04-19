@@ -67,6 +67,7 @@ public class AdminClient implements Client {
         try {
             return topicDesc.topicNameValues().get(this.topic.topicName()).get().partitions().size() < this.expectedClusterSize;
         } catch (InterruptedException | ExecutionException e) {
+            MetricsRegistry.getInstance().getTopicDescribeErrorTotal(this.topic.topicName()).increment();
             throw new RuntimeException(e);
         }
     }
@@ -87,6 +88,7 @@ public class AdminClient implements Client {
             LOGGER.info("KafkaTopic: {} successfully created", this.topic.topicName());
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Failed to create KafkaTopic: {} due to:\n {}", this.topic.topicName(), e.getMessage());
+            MetricsRegistry.getInstance().getTopicCreationFailedTotal(this.topic.topicName()).increment();
             e.printStackTrace();
         }
     }

@@ -113,7 +113,6 @@ public class HttpServerHandler {
     }
 
     public class StatusHandler extends AbstractHandler {
-
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
             ConsumingStatus consumingStatus = statusService.getConsumingStatus();
