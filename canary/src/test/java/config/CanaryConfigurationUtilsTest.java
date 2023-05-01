@@ -16,7 +16,7 @@ public class CanaryConfigurationUtilsTest {
     @Test
     void testCreateLatencyBuckets() {
         String latencyBuckets = "7,21,45,80,122,200,440,880,2000";
-        float[] latencyBucketsDesired = {7.0F, 21.0F, 45.0F, 80.0F, 122.0F, 200.0F, 440.0F, 880.0F, 2000.0F};
+        double[] latencyBucketsDesired = {7.0, 21.0, 45.0, 80.0, 122.0, 200.0, 440.0, 880.0, 2000.0};
 
         assertThat(CanaryConfigurationUtils.createLatencyBuckets(latencyBuckets), is(latencyBucketsDesired));
     }
