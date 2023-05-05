@@ -37,6 +37,7 @@ public final class StUtils {
 
     public static final long GLOBAL_TIMEOUT = Duration.ofMinutes(5).toMillis();
     public static final long GLOBAL_POLL_INTERVAL = Duration.ofSeconds(1).toMillis();
+    public static final long GLOBAL_POLL_INTERVAL_MEDIUM = Duration.ofSeconds(10).toMillis();
 
     private static final Pattern IMAGE_PATTERN_FULL_PATH = Pattern.compile("^(?<registry>[^/]*)/(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
     private static final Pattern IMAGE_PATTERN = Pattern.compile("^(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
@@ -199,9 +200,9 @@ public final class StUtils {
     public static String changeOrgAndTag(String image) {
         Matcher m = IMAGE_PATTERN_FULL_PATH.matcher(image);
         if (m.find()) {
-            String registry = setImageProperties(m.group("registry"), Environment.CLEANER_REGISTRY);
-            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG);
-            String tag = setImageProperties(m.group("tag"), Environment.CLEANER_TAG);
+            String registry = setImageProperties(m.group("registry"), Environment.CANARY_REGISTRY);
+            String org = setImageProperties(m.group("org"), Environment.CANARY_ORG);
+            String tag = setImageProperties(m.group("tag"), Environment.CANARY_TAG);
 
             String newImage = registry + "/" + org + "/" + m.group("image") + ":" + tag;
 
@@ -212,9 +213,9 @@ public final class StUtils {
 
         m = IMAGE_PATTERN.matcher(image);
         if (m.find()) {
-            String registry = Environment.CLEANER_REGISTRY != null ? Environment.CLEANER_REGISTRY + "/" : "";
-            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG);
-            String tag = setImageProperties(m.group("tag"), Environment.CLEANER_TAG);
+            String registry = Environment.CANARY_REGISTRY != null ? Environment.CANARY_REGISTRY + "/" : "";
+            String org = setImageProperties(m.group("org"), Environment.CANARY_ORG);
+            String tag = setImageProperties(m.group("tag"), Environment.CANARY_TAG);
 
             String newImage = registry + org + "/" + m.group("image") + ":"  + tag;
 

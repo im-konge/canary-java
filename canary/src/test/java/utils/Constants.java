@@ -6,7 +6,7 @@ package utils;
 
 public interface Constants {
     String USER_PATH = System.getProperty("user.dir");
-    String INSTALL_PATH = USER_PATH + "/packaging/install/";
+    String INSTALL_PATH = USER_PATH + "/../packaging/install/";
     String DEPLOYMENT_NAME = "strimzi-canary";
     String NAMESPACE = "canary-namespace";
     String DEPLOYMENT = "deployment";

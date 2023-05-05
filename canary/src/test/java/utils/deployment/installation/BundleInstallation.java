@@ -57,6 +57,9 @@ public class BundleInstallation extends InstallationMethod {
         String deploymentImage = canaryDep.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 
         canaryDep = new DeploymentBuilder(canaryDep)
+            .editOrNewMetadata()
+                .withNamespace(Constants.NAMESPACE)
+            .endMetadata()
             .editSpec()
                 .editTemplate()
                     .editSpec()

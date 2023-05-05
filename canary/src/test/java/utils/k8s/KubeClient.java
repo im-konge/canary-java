@@ -140,4 +140,8 @@ public class KubeClient {
     public boolean getDeploymentStatus(String namespaceName, String deploymentName) {
         return client.apps().deployments().inNamespace(namespaceName).withName(deploymentName).isReady();
     }
+
+    public String logsInSpecificNamespace(String namespaceName, String podName) {
+        return client.pods().inNamespace(namespaceName).withName(podName).getLog();
+    }
 }

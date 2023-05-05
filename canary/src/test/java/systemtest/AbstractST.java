@@ -36,7 +36,7 @@ public class AbstractST {
     }
 
     @BeforeAll
-    static void setupClusterAndCanary() throws InterruptedException {
+    static void setupClusterAndCanary() {
         cluster = KubeClusterResource.getInstance();
 
         // simple teardown before all tests
@@ -57,7 +57,7 @@ public class AbstractST {
         StUtils.deleteNamespaceWithWait(Constants.NAMESPACE);
     }
 
-    static void deployKafkaCluster() {
+    static public void deployKafkaCluster() {
         LOGGER.info("Deploy Strimzi in {} namespace", Constants.NAMESPACE);
         Exec.exec("kubectl", "apply", "-f", "https://strimzi.io/install/latest?namespace=" + Constants.NAMESPACE, "-n", Constants.NAMESPACE);
         StUtils.waitForDeploymentReady(Constants.NAMESPACE, "strimzi-cluster-operator");

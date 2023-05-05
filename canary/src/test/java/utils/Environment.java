@@ -15,15 +15,15 @@ public class Environment {
     private static final Logger LOGGER = LogManager.getLogger(Environment.class);
     private static final Map<String, String> VALUES = new HashMap<>();
 
-    private static final String CLEANER_REGISTRY_ENV = "DOCKER_REGISTRY";
+    private static final String CANARY_REGISTRY_ENV = "DOCKER_REGISTRY";
 
-    private static final String CLEANER_ORG_ENV = "DOCKER_ORG";
+    private static final String CANARY_ORG_ENV = "DOCKER_ORG";
 
-    private static final String CLEANER_TAG_ENV = "DOCKER_TAG";
+    private static final String CANARY_TAG_ENV = "DOCKER_TAG";
 
-    public static final String CLEANER_REGISTRY = getOrDefault(CLEANER_REGISTRY_ENV, null);
-    public static final String CLEANER_ORG = getOrDefault(CLEANER_ORG_ENV, null);
-    public static final String CLEANER_TAG = getOrDefault(CLEANER_TAG_ENV, null);
+    public static final String CANARY_REGISTRY = getOrDefault(CANARY_REGISTRY_ENV, null);
+    public static final String CANARY_ORG = getOrDefault(CANARY_ORG_ENV, null);
+    public static final String CANARY_TAG = getOrDefault(CANARY_TAG_ENV, null);
 
     static {
         String debugFormat = "{}: {}";
