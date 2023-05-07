@@ -7,7 +7,6 @@ package config;
 import common.security.SaslType;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +20,8 @@ public class CanaryConfigurationTest {
     @Test
     void testDefaultCanaryConfiguration() {
         CanaryConfiguration canaryConfiguration = CanaryConfiguration.fromMap(Collections.emptyMap());
-        float[] defaultProducerLatencyBuckets = {2.0F, 5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F};
-        float[] defaultE2ELatencyBuckets = {5.0F, 10.0F, 20.0F, 50.0F, 100.0F, 200.0F, 400.0F, 800.0F};
+        double[] defaultProducerLatencyBuckets = {2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 400.0};
+        double[] defaultE2ELatencyBuckets = {5.0, 10.0, 20.0, 50.0, 100.0, 200.0, 400.0, 800.0};
 
         assertThat(canaryConfiguration.getBootstrapServers(), is(CanaryConstants.BOOTSTRAP_SERVERS_DEFAULT));
         assertThat(canaryConfiguration.getTopic(), is(CanaryConstants.TOPIC_DEFAULT));
@@ -47,10 +46,6 @@ public class CanaryConfigurationTest {
     @Test
     void testCustomCanaryConfiguration() {
         String bootstrapServer = "my-cluster-kafka-bootstrap:9092";
-        int bootstrapBackoffMax = 3;
-
-        Duration bootstrapBackOffScale = Duration.ofMillis(23);
-        String bootstrapBackOffScaleString = "23";
 
         String topicName = "my-custom-topic-name";
 
@@ -60,13 +55,10 @@ public class CanaryConfigurationTest {
         String consumerGroup = "my-random-consumer-group-4543323";
 
         String producerLatencyBuckets = "7,21,45,80,122,200,440,880,2000";
-        float[] producerLatencyBucketsFloat = {7.0F, 21.0F, 45.0F, 80.0F, 122.0F, 200.0F, 440.0F, 880.0F, 2000.0F};
+        double[] producerLatencyBucketsFloat = {7.0, 21.0, 45.0, 80.0, 122.0, 200.0, 440.0, 880.0, 2000.0};
 
         String e2ELatencyBuckets = "7,440,880,2000";
-        float[] e2ELatencyBucketsFloat = {7.0F, 440.0F, 880.0F, 2000.0F};
-
-        String connectionCheckLatencyBuckets = "41,440,999,2000";
-        float[] connectionCheckLatencyBucketsFloat = {41.0F, 440.0F, 999.0F, 2000.0F};
+        double[] e2ELatencyBucketsFloat = {7.0, 440.0, 880.0, 2000.0};
 
         int expectedClusterSize = 4;
         boolean tlsEnabled = true;
@@ -77,13 +69,10 @@ public class CanaryConfigurationTest {
         String saslUser = "alice";
         String saslPassword = "in-wonderland";
 
-        Duration connectionCheckInterval = Duration.ofMillis(123000);
-        String connectionCheckIntervalString = "123000";
-
-        Duration statusCheckInterval = Duration.ofMillis(9999);
+        long statusCheckInterval = 9999;
         String statusCheckIntervalString = "9999";
 
-        Duration statusTimeWindow = Duration.ofMillis(65523);
+        long statusTimeWindow = 65523;
         String statusTimeWindowString = "65523";
 
         Map<String, String> testConfigurationMap = new HashMap<>();

@@ -13,3 +13,11 @@ docker_tag:
 docker_push:
 	echo "Pushing Docker image ..."
 	docker push ${DOCKER_REGISTRY}/${DOCKER_ORG}/${PROJECT_NAME}:${DOCKER_TAG}
+
+docker_save:
+	# Saves the container as TGZ file
+	docker save ${DOCKER_REGISTRY}/strimzi/$(PROJECT_NAME):$(BUILD_TAG) | gzip > canary-container.tar.gz
+
+docker_load:
+	# Loads the container as TGZ file
+	docker load < canary-container.tar.gz

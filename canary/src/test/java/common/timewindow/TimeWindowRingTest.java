@@ -20,7 +20,7 @@ public class TimeWindowRingTest {
         TimeWindowRing timeWindowRing = new TimeWindowRing(timeWindow, sampling);
 
         assertThat(timeWindowRing.getBuffer().length, is((int) (timeWindow / sampling)));
-        assertThat(timeWindowRing.getCount(), is(0));
+        assertThat(timeWindowRing.getCount(), is(0L));
         assertThat(timeWindowRing.isEmpty(), is(true));
     }
 
@@ -47,26 +47,26 @@ public class TimeWindowRingTest {
         timeWindowRing.putValue(count);
 
         assertThat(timeWindowRing.isEmpty(), is(false));
-        assertThat(timeWindowRing.getCount(), is(1));
-        assertThat(timeWindowRing.getHead(), is(0));
-        assertThat(timeWindowRing.getTail(), is(0));
+        assertThat(timeWindowRing.getCount(), is(1L));
+        assertThat(timeWindowRing.getHead(), is(0L));
+        assertThat(timeWindowRing.getTail(), is(0L));
 
         timeWindowRing.putValue(++count);
 
-        assertThat(timeWindowRing.getCount(), is(2));
-        assertThat(timeWindowRing.getHead(), is(1));
-        assertThat(timeWindowRing.getTail(), is(0));
+        assertThat(timeWindowRing.getCount(), is(2L));
+        assertThat(timeWindowRing.getHead(), is(1L));
+        assertThat(timeWindowRing.getTail(), is(0L));
 
         timeWindowRing.putValue(++count);
 
-        assertThat(timeWindowRing.getCount(), is(3));
-        assertThat(timeWindowRing.getHead(), is(2));
-        assertThat(timeWindowRing.getTail(), is(0));
+        assertThat(timeWindowRing.getCount(), is(3L));
+        assertThat(timeWindowRing.getHead(), is(2L));
+        assertThat(timeWindowRing.getTail(), is(0L));
 
         timeWindowRing.putValue(++count);
 
-        assertThat(timeWindowRing.getCount(), is(3));
-        assertThat(timeWindowRing.getHead(), is(3));
-        assertThat(timeWindowRing.getTail(), is(1));
+        assertThat(timeWindowRing.getCount(), is(3L));
+        assertThat(timeWindowRing.getHead(), is(3L));
+        assertThat(timeWindowRing.getTail(), is(1L));
     }
 }
