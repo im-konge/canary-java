@@ -54,8 +54,8 @@ public class StatusService {
             return -1;
         }
 
-        int produced = this.producerRing.getHead() - this.producerRing.getTail();
-        int consumed = this.consumerRing.getHead() - this.consumerRing.getTail();
+        long produced = this.producerRing.getHead() - this.producerRing.getTail();
+        long consumed = this.consumerRing.getHead() - this.consumerRing.getTail();
 
         if (produced == 0 || consumed == 0) {
             return -1;

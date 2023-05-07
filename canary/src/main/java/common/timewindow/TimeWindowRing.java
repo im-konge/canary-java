@@ -41,7 +41,7 @@ import org.apache.logging.log4j.Logger;
 public class TimeWindowRing {
     private static final Logger LOGGER = LogManager.getLogger(TimeWindowRing.class);
 
-    private int[] buffer;
+    private long[] buffer;
     private int head;
     private int tail;
     private int count;
@@ -55,7 +55,7 @@ public class TimeWindowRing {
             bufferSize = CanaryConstants.MAX_TIME_WINDOW_RING_BUFFER_BUCKETS;
             LOGGER.warn("Time window {} ms too wide with {} ms sampling; resized to {} ms", timeWindowSize, sampling, bufferSize * sampling);
         }
-        this.buffer = new int[bufferSize];
+        this.buffer = new long[bufferSize];
         this.head = -1;
         this.tail = -1;
         this.count = 0;
@@ -88,7 +88,7 @@ public class TimeWindowRing {
      * Method returning value on head
      * @return value on head index in buffer
      */
-    public int getHead() {
+    public long getHead() {
         return this.buffer[this.head];
     }
 
@@ -96,7 +96,7 @@ public class TimeWindowRing {
      * Method returning value on tail
      * @return value on tail index in buffer
      */
-    public int getTail() {
+    public long getTail() {
         return this.buffer[this.tail];
     }
 
@@ -104,7 +104,7 @@ public class TimeWindowRing {
      * Method returning actual count of values stored in buffer
      * @return count of values stored in buffer
      */
-    public int getCount() {
+    public long getCount() {
         return this.count;
     }
 
@@ -112,7 +112,7 @@ public class TimeWindowRing {
      * Method returning whole buffer
      * @return buffer
      */
-    public int[] getBuffer() {
+    public long[] getBuffer() {
         return buffer;
     }
 
